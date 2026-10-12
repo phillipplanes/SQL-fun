@@ -187,6 +187,10 @@
       <div class="pin-display" id="lobbyPin">------</div>
       <img class="qr" id="lobbyQr" width="180" height="180" alt="Join QR code">
       <p class="muted" style="font-size:.85rem; word-break:break-all;" id="lobbyUrl"></p>
+      <p id="hostConnWarn" class="hidden" style="color:var(--danger); font-size:.9rem; margin-top:10px;">
+        ⚠ Not connected to the realtime server — students won't appear in this lobby.
+        Check your internet connection and that the Supabase project is active, then refresh and create the game again.
+      </p>
     </div>
     <div class="card">
       <div class="row" style="justify-content:space-between">
@@ -284,6 +288,7 @@
       <p class="subtitle" style="margin-top:8px;">You're in! Hold tight…</p>
       <div class="players-grid" id="pLobbyPlayers" style="justify-content:center;"></div>
       <p class="muted" id="pLobbyCount" style="margin-top:12px;"></p>
+      <p class="muted" id="pRoomPresence" style="margin-top:8px; font-size:.85rem;"></p>
     </div>
   </div>
 
@@ -489,6 +494,14 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 
+/* iOS suspends websockets/timers when the tab is hidden or the phone locks.
+   Re-announce on wake so presence and hellos aren't lost. */
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || !channel) return;
+  if (role === "player" && me) { channel.track({ role: "player", name: me.name }); sendHello(); }
+  else if (role === "host" && game) { channel.track({ role: "host" }); broadcastState(); }
+});
+
 /* ============================ SUPABASE ============================ */
 function initSupabase() {
   if (!sb) sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -505,10 +518,25 @@ function ch(pin) {
 }
 
 /* Presence is the server's own source of truth for who is in the room.
-   The host rebuilds its player list from it — no dependence on broadcasts. */
+   The host rebuilds its player list from it — no dependence on broadcasts.
+   On the player side it doubles as a diagnostic: it shows who is REALLY in
+   this room, independent of the host's broadcasts. */
 function onPresenceSync() {
-  if (!channel || role !== "host" || !game) return;
+  if (!channel) return;
   const pres = channel.presenceState() || {};
+  if (role !== "host" || !game) {
+    const entries = Object.values(pres).flat();
+    const hostHere = entries.some(p => p.role === "host");
+    const playersHere = entries.filter(p => p.role === "player").length;
+    const el = $("pRoomPresence");
+    if (el) {
+      if (!entries.length) el.textContent = "";
+      else el.innerHTML = hostHere
+        ? `🟢 ${playersHere} player${playersHere === 1 ? "" : "s"} connected in this room`
+        : `<span style="color:var(--danger)">⚠ No teacher in this room — double-check the PIN on the projector.</span> <br>${playersHere} player${playersHere === 1 ? "" : "s"} here.`;
+    }
+    return;
+  }
   let changed = false;
   for (const [id, arr] of Object.entries(pres)) {
     for (const p of arr) {
@@ -552,7 +580,10 @@ $("btnCreateGame").onclick = async () => {
     history: [],
     endsAt: 0
   };
-  await ch(pin).subscribe(status => setConn(status === "SUBSCRIBED"));
+  await ch(pin).subscribe(status => {
+    setConn(status === "SUBSCRIBED");
+    $("hostConnWarn").classList.toggle("hidden", status === "SUBSCRIBED");
+  });
   channel.track({ role: "host" });
   $("lobbyPin").textContent = pin;
   const joinUrl = location.origin + location.pathname + "#room/" + pin;
@@ -725,17 +756,20 @@ $("btnJoinRoom").onclick = async () => {
   await ch(pin).subscribe(status => {
     setConn(status === "SUBSCRIBED", status === "SUBSCRIBED" ? "live" : status.toLowerCase());
     if (status === "SUBSCRIBED") sendHello();
+    else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
+      $("pLobbyCount").textContent = "⚠ Connection problem (" + status + ") — check your internet and try rejoining.";
   });
   channel.track({ role: "player", name });
   setView("player-lobby");
   $("pWelcome").textContent = `Welcome, ${name}! 🎮`;
   $("pLobbyCount").textContent = "Connecting to the room…";
-  // Keep announcing until the host confirms us with a state message (max ~15s).
+  // Keep announcing until the host confirms us with a state message (max ~60s).
   if (helloTimer) clearInterval(helloTimer);
   let attempts = 0;
   helloTimer = setInterval(() => {
     attempts++;
-    if (lastStateAt || attempts > 8) { clearInterval(helloTimer); return; }
+    if (lastStateAt || attempts > 30) { clearInterval(helloTimer); return; }
+    if (attempts === 5) $("pLobbyCount").textContent = "Still connecting… (check the PIN and your connection)";
     sendHello();
   }, 2000);
   // Connection watchdog
