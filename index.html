@@ -83,8 +83,7 @@
     padding: 12px; margin: 10px 0; white-space: pre-wrap; font-size: .95rem;
     color: #c9b0f5; line-height: 1.5;
   }
-  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 640px) { .options { grid-template-columns: 1fr; } }
+  .options { display: grid; grid-template-columns: 1fr; gap: 12px; }
   .option {
     position: relative; padding: 18px 16px 18px 58px; border-radius: 12px; text-align: left;
     font-size: 1.05rem; font-weight: 600; min-height: 64px; color: #fff;
@@ -95,8 +94,7 @@
     width: 34px; height: 34px; border-radius: 8px; background: rgba(0,0,0,.25);
     display: flex; align-items: center; justify-content: center; font-weight: 900;
   }
-  .opt1 { background: var(--c1); } .opt2 { background: var(--c2); }
-  .opt3 { background: var(--c3); } .opt4 { background: var(--c4); }
+  .opt1, .opt2, .opt3, .opt4 { background: linear-gradient(135deg, var(--hpu-light), var(--hpu)); color: #fff; }
   .option.selected { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.25); }
   .option.dim { opacity: .35; }
   .option.correct { box-shadow: 0 0 0 4px var(--accent2); border-color: var(--accent2); }
@@ -232,7 +230,7 @@
     </div>
     <div class="card">
       <div class="q-text" id="revealText"></div>
-      <div id="revealOptions"></div>
+      <div id="revealOptions" class="options"></div>
       <p class="muted" id="revealExplain" style="margin-top:14px; line-height:1.5;"></p>
     </div>
     <div class="card">
@@ -303,7 +301,7 @@
     <div class="card">
       <div class="q-text" id="pqText" style="font-size:1.1rem;"></div>
       <div class="code hidden" id="pqCode"></div>
-      <div id="pOptions"></div>
+      <div id="pOptions" class="options"></div>
       <div class="vote-note" id="pVoteNote"></div>
     </div>
   </div>
