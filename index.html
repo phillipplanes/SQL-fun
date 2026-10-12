@@ -269,8 +269,8 @@
       <h1>Join the game 📱</h1>
       <label>Game PIN (on the projector)</label>
       <input id="joinPin" inputmode="numeric" placeholder="123456" maxlength="6" style="font-size:1.4rem; letter-spacing:.3em; text-align:center;">
-      <label>Nickname</label>
-      <input id="joinName" placeholder="e.g. sql_queen" maxlength="16">
+      <label>Your name</label>
+      <input id="joinName" placeholder="e.g. Jordan Smith" maxlength="40" autocomplete="name" style="font-size:1.4rem;">
       <button class="big" id="btnJoinRoom">Join →</button>
       <p class="muted" id="joinStatus" style="margin-top:10px; font-size:.85rem; text-align:center;">
         ⚠️ Every question counts. If you don't vote, it counts as <b style="color:var(--danger)">wrong</b> for the whole class.
@@ -485,10 +485,12 @@ function route() {
   clearTimers();
   const hash = location.hash.replace("#", "");
   if (hash.startsWith("host")) { role = "host"; setupHostView(); }
-  else if (hash.startsWith("join")) { role = "player"; setView("join"); }
-  else if (hash.startsWith("room/")) { role = "player"; const pin = hash.split("/")[1]; $("joinPin").value = pin; setView("join"); }
+  else if (hash.startsWith("join")) { role = "player"; prefillName(); setView("join"); }
+  else if (hash.startsWith("room/")) { role = "player"; const pin = hash.split("/")[1]; $("joinPin").value = pin; prefillName(); setView("join"); }
   else setView("home");
 }
+/* Remember the student's name across games on this device. */
+function prefillName() { const saved = localStorage.getItem("sr_name"); if (saved) $("joinName").value = saved; }
 window.addEventListener("hashchange", route);
 
 /* iOS suspends websockets/timers when the tab is hidden or the phone locks.
@@ -744,9 +746,11 @@ let myChoice = null, curQIndex = -1, curRevealQ = -1;
 
 $("btnJoinRoom").onclick = async () => {
   const pin = $("joinPin").value.trim();
-  const name = $("joinName").value.trim() || "anon" + Math.floor(Math.random() * 999);
+  const typed = $("joinName").value.trim();
+  const name = typed || "anon" + Math.floor(Math.random() * 999);
   if (pin.length !== 6) { alert("Enter the 6-digit PIN from the projector."); return; }
   if (!initSupabase()) return;
+  if (typed) localStorage.setItem("sr_name", typed);
   me = { name, pin, score: 0 };
   myChoice = null;
   lastStateAt = 0;
