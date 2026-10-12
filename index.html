@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SQL Royale — Live SQL 101 Quiz</title>
+<style>
+  :root {
+    /* High Point University — Royal Purple (Pantone 2685, #330072) */
+    --hpu: #330072;
+    --hpu-light: #5a2da8;
+    --hpu-glow: #8a5cd6;
+    --bg: #150726;
+    --panel: #230f3d;
+    --panel2: #2e1650;
+    --border: #3f2370;
+    --text: #ffffff;
+    --muted: #b8a5d8;
+    --accent: var(--hpu-light);
+    --accent2: #29d3a5;
+    --danger: #ff5470;
+    --warn: #ffb02e;
+    --c1: #ff5470; --c2: #29d3a5; --c3: #4d9dff; --c4: #ffb02e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1100px 700px at 80% -10%, #2a1148 0%, var(--bg) 55%);
+    color: var(--text);
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100%;
+  }
+  .wrap { width: 100%; max-width: 1100px; padding: 18px; flex: 1; display: flex; flex-direction: column; }
+  h1 { font-size: 2rem; letter-spacing: 1px; }
+  h1 .accent { color: var(--hpu-glow); }
+  .subtitle { color: var(--muted); margin-top: 4px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; margin-top: 16px;
+  }
+  label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 6px; }
+  input, select {
+    width: 100%; padding: 12px 14px; font-size: 1rem; border-radius: 10px;
+    border: 1px solid var(--border); background: #180830; color: var(--text); outline: none;
+  }
+  input:focus { border-color: var(--hpu-glow); }
+  button {
+    cursor: pointer; border: none; border-radius: 10px; font-weight: 700;
+    padding: 12px 20px; font-size: 1rem; color: #fff;
+    background: linear-gradient(135deg, var(--hpu-light), var(--hpu));
+    transition: transform .08s ease, filter .15s ease;
+  }
+  button:hover { filter: brightness(1.15); }
+  button:active { transform: scale(.97); }
+  button:disabled { filter: grayscale(.7); opacity: .5; cursor: not-allowed; }
+  button.ghost { background: var(--panel2); border: 1px solid var(--border); }
+  button.big { width: 100%; padding: 15px; font-size: 1.15rem; margin-top: 18px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .pill {
+    display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: .8rem;
+    background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
+  }
+  .pin-display {
+    font-size: 4rem; font-weight: 900; letter-spacing: .35em; text-align: center;
+    color: #fff; margin: 10px 0;
+    text-shadow: 0 0 34px rgba(138, 92, 214, .8);
+  }
+  .qr { display: block; margin: 8px auto; border-radius: 12px; background: #fff; padding: 8px; }
+  .players-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .player-chip {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 14px; font-size: .95rem; animation: pop .25s ease;
+  }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+  .q-text {
+    font-size: 1.5rem; font-weight: 700; line-height: 1.45; margin-bottom: 14px;
+    white-space: pre-wrap; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  }
+  .code {
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    background: #100423; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; margin: 10px 0; white-space: pre-wrap; font-size: .95rem;
+    color: #c9b0f5; line-height: 1.5;
+  }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .options { grid-template-columns: 1fr; } }
+  .option {
+    position: relative; padding: 18px 16px 18px 58px; border-radius: 12px; text-align: left;
+    font-size: 1.05rem; font-weight: 600; min-height: 64px; color: #fff;
+    border: 2px solid transparent;
+  }
+  .option .tag {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border-radius: 8px; background: rgba(0,0,0,.25);
+    display: flex; align-items: center; justify-content: center; font-weight: 900;
+  }
+  .opt1 { background: var(--c1); } .opt2 { background: var(--c2); }
+  .opt3 { background: var(--c3); } .opt4 { background: var(--c4); }
+  .option.selected { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.25); }
+  .option.dim { opacity: .35; }
+  .option.correct { box-shadow: 0 0 0 4px var(--accent2); border-color: var(--accent2); }
+  .bar-wrap { margin-top: 8px; background: rgba(0,0,0,.25); border-radius: 999px; height: 10px; overflow: hidden; }
+  .bar { height: 100%; width: 0%; border-radius: 999px; background: rgba(255,255,255,.85); transition: width .4s ease; }
+  .timer-big { font-size: 2.6rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .timer-bar { height: 12px; background: var(--panel2); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+  .timer-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--warn), var(--danger)); transition: width .25s linear; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
+  .stat { background: var(--panel2); border-radius: 12px; padding: 14px; text-align: center; }
+  .stat .val { font-size: 1.7rem; font-weight: 900; }
+  .stat .lbl { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+  .meter { margin-top: 16px; }
+  .meter .track { height: 26px; background: var(--panel2); border-radius: 999px; overflow: hidden; position: relative; }
+  .meter .fill { height: 100%; background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent2)); transition: width .5s ease; }
+  .meter .goal-line { position: absolute; top: -4px; bottom: -4px; left: 75%; width: 3px; background: #fff; border-radius: 2px; }
+  .leaderboard { margin-top: 10px; }
+  .lb-row {
+    display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 10px;
+    background: var(--panel2); margin-top: 6px; font-size: 1.05rem;
+  }
+  .lb-row.top { background: linear-gradient(90deg, #1d4a3a, var(--panel2)); border: 1px solid var(--accent2); }
+  .verdict { font-size: 2rem; font-weight: 900; text-align: center; padding: 20px; border-radius: 14px; margin-top: 12px; }
+  .verdict.pass { background: rgba(41, 211, 165, .15); color: var(--accent2); border: 2px solid var(--accent2); }
+  .verdict.fail { background: rgba(255, 84, 112, .12); color: var(--danger); border: 2px solid var(--danger); }
+  .center { text-align: center; }
+  .muted { color: var(--muted); }
+  .hidden { display: none !important; }
+  .logo { font-weight: 900; font-size: 1.15rem; }
+  .logo a { color: var(--text); text-decoration: none; }
+  .logo .hp { color: var(--hpu-glow); }
+  .vote-note { text-align: center; font-weight: 700; color: var(--accent2); margin-top: 12px; min-height: 1.4em; }
+  .brandline { font-size: .75rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  @media (max-width: 640px) { .pin-display { font-size: 2.6rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+    <div class="logo"><a href="./"><span class="hp">SQL</span> ROYALE</a></div>
+    <div class="row"><span class="brandline">SQL 101 · Live</span><span class="pill" id="connPill">● offline</span></div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div id="view-home" class="hidden">
+    <div class="card center">
+      <h1>SQL <span class="accent">ROYALE</span></h1>
+      <p class="subtitle">Live classroom quiz — projector + phones, synced in real time.</p>
+      <div class="row" style="justify-content:center; margin-top:18px;">
+        <a href="#host"><button>🖥️ Teacher — run the game</button></a>
+        <a href="#join"><button class="ghost">📱 Student — join a game</button></a>
+      </div>
+    </div>
+    <div class="card muted" style="font-size:.9rem; line-height:1.6;">
+      <b style="color:var(--text)">Full-class mode:</b> the whole class plays as one team. Each question, every student must vote —
+      <b style="color:var(--warn)">not voting counts as a wrong answer</b>. The class answer is the majority vote.
+      If the class averages at least <b style="color:var(--accent2)">75% correct</b> across all questions (counting non-votes as wrong),
+      homework is skipped. 🎉
+    </div>
+  </div>
+
+  <!-- ============ HOST SETUP ============ -->
+  <div id="view-host-setup" class="hidden">
+    <div class="card">
+      <h1>Create a game 🖥️</h1>
+      <p class="subtitle">This screen goes on the projector.</p>
+      <label>Lesson module</label>
+      <select id="cfgModule"></select>
+      <label>Number of questions</label>
+      <select id="cfgQuestions"></select>
+      <label>Seconds per question</label>
+      <select id="cfgSeconds">
+        <option>20</option><option selected>30</option><option>45</option><option>60</option>
+      </select>
+      <label>Homework-pass threshold (% correct, non-votes count as wrong)</label>
+      <select id="cfgThreshold">
+        <option>60</option><option>70</option><option selected>75</option><option>80</option><option>90</option>
+      </select>
+      <button class="big" id="btnCreateGame">Create game room →</button>
+    </div>
+  </div>
+
+  <!-- ============ HOST LOBBY ============ -->
+  <div id="view-host-lobby" class="hidden">
+    <div class="card center">
+      <p class="subtitle">Students: open this site on your phone and enter this PIN</p>
+      <div class="pin-display" id="lobbyPin">------</div>
+      <img class="qr" id="lobbyQr" width="180" height="180" alt="Join QR code">
+      <p class="muted" style="font-size:.85rem; word-break:break-all;" id="lobbyUrl"></p>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h1 id="playerCountTitle">Players</h1>
+        <span class="pill" id="lobbyPlayerCount">0 joined</span>
+      </div>
+      <div class="players-grid" id="lobbyPlayers"></div>
+      <button class="big" id="btnStartGame">Start game →</button>
+    </div>
+  </div>
+
+  <!-- ============ HOST QUESTION ============ -->
+  <div id="view-host-question" class="hidden">
+    <div class="row" style="justify-content:space-between; align-items:baseline">
+      <h1>Question <span id="qNum"></span></h1>
+      <div class="center">
+        <div class="timer-big" id="timerText">30</div>
+        <div class="muted" style="font-size:.8rem">seconds left</div>
+      </div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+    <div class="card">
+      <div class="q-text" id="hqText"></div>
+      <div class="code hidden" id="hqCode"></div>
+      <div class="row" style="margin-top:10px;">
+        <span class="pill" id="voteCount">0 votes</span>
+        <span class="pill" id="presentCount">0 players in room</span>
+        <span class="pill">majority = class answer</span>
+      </div>
+      <button class="big" id="btnEndQuestion">End question &amp; reveal →</button>
+    </div>
+  </div>
+
+  <!-- ============ HOST REVEAL ============ -->
+  <div id="view-host-reveal" class="hidden">
+    <div class="row" style="justify-content:space-between; align-items:baseline">
+      <h1>Results — Q<span id="revealQNum"></span></h1>
+      <span class="pill" id="revealMajority"></span>
+    </div>
+    <div class="card">
+      <div class="q-text" id="revealText"></div>
+      <div id="revealOptions"></div>
+      <p class="muted" id="revealExplain" style="margin-top:14px; line-height:1.5;"></p>
+    </div>
+    <div class="card">
+      <h3>Homework meter</h3>
+      <p class="muted" style="font-size:.85rem">Correct votes ÷ everyone in the room (non-votes count as wrong). Class needs the average to stay above the white line.</p>
+      <div class="meter">
+        <div class="track"><div class="fill" id="hwFill"></div><div class="goal-line"></div></div>
+        <div class="row" style="justify-content:space-between; margin-top:6px">
+          <span id="hwLabel"></span>
+          <span class="muted" id="hwAverage"></span>
+        </div>
+      </div>
+      <div class="stat-grid" id="revealStats"></div>
+      <button class="big" id="btnNext">Next question →</button>
+    </div>
+  </div>
+
+  <!-- ============ HOST FINAL ============ -->
+  <div id="view-host-final" class="hidden">
+    <div id="verdictBox"></div>
+    <div class="card">
+      <h3>Per-question class accuracy</h3>
+      <div id="finalBreakdown"></div>
+      <div class="stat-grid" id="finalStats"></div>
+    </div>
+    <div class="card">
+      <h3>Top students 🏆</h3>
+      <div class="leaderboard" id="finalLeaderboard"></div>
+      <button class="big" id="btnPlayAgain">Play again (new PIN) ↻</button>
+    </div>
+  </div>
+
+  <!-- ============ JOIN ============ -->
+  <div id="view-join" class="hidden">
+    <div class="card">
+      <h1>Join the game 📱</h1>
+      <label>Game PIN (on the projector)</label>
+      <input id="joinPin" inputmode="numeric" placeholder="123456" maxlength="6" style="font-size:1.4rem; letter-spacing:.3em; text-align:center;">
+      <label>Nickname</label>
+      <input id="joinName" placeholder="e.g. sql_queen" maxlength="16">
+      <button class="big" id="btnJoinRoom">Join →</button>
+      <p class="muted" id="joinStatus" style="margin-top:10px; font-size:.85rem; text-align:center;">
+        ⚠️ Every question counts. If you don't vote, it counts as <b style="color:var(--danger)">wrong</b> for the whole class.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ PLAYER LOBBY ============ -->
+  <div id="view-player-lobby" class="hidden">
+    <div class="card center">
+      <div style="font-size:3rem">🎮</div>
+      <h2 id="pWelcome"></h2>
+      <p class="subtitle" style="margin-top:8px;">You're in! Hold tight…</p>
+      <div class="players-grid" id="pLobbyPlayers" style="justify-content:center;"></div>
+      <p class="muted" id="pLobbyCount" style="margin-top:12px;"></p>
+    </div>
+  </div>
+
+  <!-- ============ PLAYER QUESTION ============ -->
+  <div id="view-player-question" class="hidden">
+    <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+      <span class="pill" id="pQNum"></span>
+      <span class="timer-big" id="pTimer" style="font-size:1.6rem;">30</span>
+      <span class="pill" id="pMyScore">0 pts</span>
+    </div>
+    <div class="timer-bar" style="margin-bottom:12px;"><div class="timer-fill" id="pTimerFill" style="width:100%"></div></div>
+    <div class="card">
+      <div class="q-text" id="pqText" style="font-size:1.1rem;"></div>
+      <div class="code hidden" id="pqCode"></div>
+      <div id="pOptions"></div>
+      <div class="vote-note" id="pVoteNote"></div>
+    </div>
+  </div>
+
+  <!-- ============ PLAYER REVEAL ============ -->
+  <div id="view-player-reveal" class="hidden">
+    <div class="card center">
+      <div id="pVerdict" style="font-size:1.6rem; font-weight:900; margin-bottom:8px;"></div>
+      <p class="subtitle" id="pRevealDetail"></p>
+      <div class="code" id="pExplanation" style="text-align:left;"></div>
+      <p class="muted" id="pClassMeter" style="margin-top:12px;"></p>
+    </div>
+  </div>
+
+  <!-- ============ PLAYER FINAL ============ -->
+  <div id="view-player-final" class="hidden">
+    <div class="card center">
+      <div id="pFinalVerdict" style="font-size:1.8rem; font-weight:900;"></div>
+      <p class="subtitle" id="pFinalDetail" style="margin-top:8px;"></p>
+      <div class="pill" id="pFinalClass" style="margin-top:14px;"></div>
+      <p class="muted" style="margin-top:16px"><a href="#join" style="color:var(--hpu-glow)">↻ Play again</a></p>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ================================================================
+   CONFIG — Supabase project
+   ================================================================ */
+const SUPABASE_URL = "https://bnncmkwzuduimpkjniur.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_iFZB4kApTYnkavLk3XPQVw_paYTcHl5";
+
+/* ================= QUESTION MODULES =================
+   Each key is a lesson module shown in the teacher's dropdown.
+   Question shape: q, options[4], answer (0-3), explain, code? (optional snippet)
+================================================================ */
+const MODULES = {
+  "Day 1 — Data vs. Information vs. Insights": [
+    { q: "A raw fact or figure with no context is called…",
+      options: ["Information", "Data", "An insight", "A statistic"], answer: 1,
+      explain: "Data = raw facts and figures (e.g. '412', 'swipe', '7:42 AM'). By itself it has no meaning until processed." },
+    { q: "A campus system exports these values: 4127, 08:01:13, 12:15:02, 18:40:44. Nobody has explained what they mean yet. At this point, they are…",
+      options: ["Information", "Insights", "Data", "A summary"], answer: 2,
+      explain: "Context-free values are raw data. Once someone says 'those are student #4127's meal swipes at breakfast, lunch, and dinner,' the SAME values become information — context is what makes the difference." },
+    { q: "\"You've used 21 of your 50 meal swipes with 6 weeks left\" is an example of…",
+      options: ["Raw data", "Information", "A database", "An algorithm"], answer: 1,
+      explain: "Information = data that has been processed and given context. Raw swipe counts were turned into a meaningful statement." },
+    { q: "What transforms data into information?",
+      options: ["Storing it in the cloud", "Processing + adding context", "Encrypting it", "Making it bigger"], answer: 1,
+      explain: "Data becomes information once it's organized, summarized, or contextualized so a human can interpret it." },
+    { q: "Dining analytics notice: students who skip breakfast spend ~30% more at the evening food court. What is this?",
+      options: ["Data", "Information", "An insight", "A transaction"], answer: 2,
+      explain: "An insight is a discovered pattern or relationship that explains WHY something happens and suggests what to do about it." },
+    { q: "Which one is the most actionable for a decision?",
+      options: ["A row of card-swipe timestamps", "A count of today's swipes", "Insight: library café demand spikes 6–8 PM — staff accordingly", "A list of student ID numbers"], answer: 2,
+      explain: "Insights drive decisions. The insight directly recommends an action (staffing), while data/information still need interpretation." },
+    { q: "Put these in the natural pipeline order:",
+      code: "1. Insight\n2. Data\n3. Information\n\nWhich order do they flow in?",
+      options: ["2 → 3 → 1", "1 → 2 → 3", "3 → 2 → 1", "They are independent"], answer: 0,
+      explain: "Data (raw) → processed into information (organized) → analyzed into insights (interpreted, actionable)." },
+    { q: "Your dorm access card records every door unlock — 1,200 entries pile up today. On their own, before anyone processes them, these entries are…",
+      options: ["Information", "Data", "An insight", "A dashboard"], answer: 1,
+      explain: "The unprocessed entries are data. 'Building B has 1,200 entries/day' → information. 'Peak access is 11 PM, add a second card reader' → insight." },
+    { q: "\"The library is busiest 6–8 PM on weekdays.\" This is derived from swipe logs and helps set hours. What is it?",
+      options: ["Data", "Information", "Insight", "None of these"], answer: 2,
+      explain: "It's a pattern extracted from data that explains behavior and supports a decision (staffing, hours) — an insight." },
+    { q: "Information is best defined as…",
+      options: ["Data + context and meaning", "Stored queries", "Very large numbers", "Raw sensor output"], answer: 0,
+      explain: "Information = data that has been processed, organized, or structured so it becomes meaningful to a human." },
+    { q: "Your dining app says: '8 meal swipes left this week.' One week later it predicts: 'At this pace you'll run out 5 days early.' The prediction is…",
+      options: ["Data", "Information", "An insight", "A receipt"], answer: 2,
+      explain: "The prediction interprets a pattern in your usage and enables an action (adjust your plan or pace) — that's the insight level." },
+    { q: "Which is closest to RAW DATA for a meal card system?",
+      options: ["Students are dining less this week", "Row: (id=8841, time=7:42:13, station=Grill)", "The dining hall needs more staff", "Campus dining revenue fell 4%"], answer: 1,
+      explain: "A single unprocessed transaction record is raw data. The revenue change is information; the staffing need is an insight." },
+    { q: "Why do organizations collect data at all?",
+      options: ["To fill up servers", "To convert it into information and insights that guide decisions", "Because the law always requires it", "To show colorful charts"], answer: 1,
+      explain: "Data is collected to be refined into insights that improve decisions — the whole point of the data → information → insight pipeline." },
+    { q: "One swipe log entry is missing because a card reader was offline. In the raw data, that gap is…",
+      options: ["An insight", "Missing data — a data-quality problem", "Information", "A query"], answer: 1,
+      explain: "Missing/corrupt raw records are data-quality issues. Insights built on them can be wrong — a key day-1 lesson." },
+    { q: "RAs analyze door-swipe logs to understand traffic patterns after quiet hours. Before analysis, the logs are only…",
+      options: ["Data", "Information", "Insights", "Knowledge"], answer: 0,
+      explain: "Until someone processes and interprets them, the logs are just data — recorded facts with no conclusions attached." },
+    { q: "Which statement is an INSIGHT about campus life?",
+      options: ["The gym logged 4,210 entries this month", "Gym entries spike every January and drop by March", "Student #4123 entered the gym at 6 PM", "Total gym entries are stored in a table"], answer: 1,
+      explain: "A trend that reveals behavior (the January resolution effect) is an insight. The raw entry is data; the monthly total is information." },
+    { q: "Meal cards and building access can reveal WHERE students are and WHEN. The biggest concern this raises is…",
+      options: ["Storage cost", "Student privacy and consent", "SQL performance", "Screen size on phones"], answer: 1,
+      explain: "Location-tracking data is sensitive. Real-life data systems must consider privacy, consent, and what's appropriate to collect." },
+    { q: "The registrar reports: 'Average first-year GPA: 3.1.' A professor concludes: 'First-years living on campus outperform commuters.' The professor's statement is…",
+      options: ["Data", "Information", "An insight", "A database schema"], answer: 2,
+      explain: "The average is information (processed data). The conclusion drawn by comparing groups — explaining a pattern — is an insight." }
+  ],
+  "SQL 101 Basics": [
+    { q: "Which SQL statement is used to extract data from a database?",
+      options: ["SELECT", "GET", "PULL", "EXTRACT"], answer: 0,
+      explain: "SELECT retrieves rows from one or more tables. The others are not SQL statements." },
+    { q: "Which clause filters rows AFTER they have been grouped?",
+      options: ["WHERE", "HAVING", "GROUP BY", "ORDER BY"], answer: 1,
+      explain: "WHERE filters before grouping; HAVING filters the groups themselves (e.g. HAVING COUNT(*) > 5)." },
+    { q: "What does this query return?\nSELECT COUNT(*) FROM students WHERE gpa >= 3.0;",
+      options: ["The GPA of every student", "The number of students with GPA ≥ 3.0", "All students with GPA ≥ 3.0", "An error"], answer: 1,
+      explain: "COUNT(*) is an aggregate — it collapses matching rows into a single number: how many rows matched the WHERE." },
+    { q: "Which key uniquely identifies a row in a table?",
+      options: ["FOREIGN KEY", "PRIMARY KEY", "INDEX", "VIEW"], answer: 1,
+      explain: "The PRIMARY KEY uniquely identifies each row and cannot contain NULLs." },
+    { q: "Which JOIN returns only rows with matches in BOTH tables?",
+      options: ["LEFT JOIN", "OUTER JOIN", "INNER JOIN", "CROSS JOIN"], answer: 2,
+      explain: "INNER JOIN keeps only rows where the join condition matches in both tables." },
+    { q: "What is NULL in SQL?",
+      options: ["The number 0", "An empty string ''", "Unknown / missing value", "A default value"], answer: 2,
+      explain: "NULL means 'unknown'. It is neither 0 nor ''. That's why you must test IS NULL, not = NULL." },
+    { q: "Which query correctly finds all names starting with 'A'?",
+      options: ["WHERE name = 'A%'", "WHERE name LIKE 'A%'", "WHERE name LIKE '*A*'", "WHERE name REGEX '^A'"], answer: 1,
+      explain: "LIKE with % matches any number of characters: 'A%' = starts with A." },
+    { q: "What does ORDER BY grade DESC do?",
+      options: ["Sorts alphabetically A→Z", "Sorts from highest to lowest", "Removes duplicates", "Groups rows"], answer: 1,
+      explain: "DESC = descending (largest first). ASC (the default) sorts ascending." },
+    { q: "Which statement adds a new row to a table?",
+      options: ["UPDATE", "ADD ROW", "INSERT INTO", "APPEND"], answer: 2,
+      explain: "INSERT INTO table VALUES (...) adds rows. UPDATE modifies existing rows." },
+    { q: "What does DISTINCT do here?\nSELECT DISTINCT city FROM customers;",
+      options: ["Returns duplicate cities too", "Returns each unique city once", "Sorts cities", "Counts cities"], answer: 1,
+      explain: "DISTINCT removes duplicate values from the result set." },
+    { q: "Which aggregate function gives the average?",
+      options: ["MEAN()", "AVG()", "AVERAGE()", "MEDIAN()"], answer: 1,
+      explain: "AVG() computes the mean of a numeric column. MEAN()/AVERAGE()/MEDIAN() are not standard SQL." },
+    { q: "What is the result of: SELECT 10 / 3; in standard SQL integer division?",
+      options: ["3.33", "3", "4", "Error"], answer: 1,
+      explain: "In many engines (e.g. Postgres) dividing two integers truncates toward zero: 10/3 = 3. Cast to numeric for 3.33." },
+    { q: "Which clause removes duplicate rows from a result?",
+      code: "-- option A\nSELECT city FROM customers\n-- option B\nSELECT DISTINCT city FROM customers\n-- option C\nSELECT city UNIQUE FROM customers\n-- option D\nSELECT DEDUPE(city) FROM customers",
+      options: ["A", "B", "C", "D"], answer: 1,
+      explain: "DISTINCT (option B) is the only valid keyword here. UNIQUE isn't a SELECT modifier, and DEDUPE() doesn't exist." },
+    { q: "A FOREIGN KEY is used to…",
+      options: ["Encrypt a column", "Link two tables together", "Speed up every query", "Sort rows automatically"], answer: 1,
+      explain: "A FOREIGN KEY references the PRIMARY KEY of another table, enforcing the relationship." },
+    { q: "Which query returns the 3 highest-scoring students?",
+      code: "-- option A\nSELECT name FROM students\nORDER BY score DESC LIMIT 3;\n-- option B\nSELECT TOP 3 score FROM students;\n-- option C\nSELECT name, MAX(score) FROM students LIMIT 3;\n-- option D\nSELECT name FROM students WHERE score > 3;",
+      options: ["A", "B", "C", "D"], answer: 0,
+      explain: "Sort descending by score, then LIMIT 3. (MAX would collapse all rows into one.)" },
+    { q: "What does GROUP BY do?",
+      options: ["Sorts the result", "Combines rows into groups per column value (for aggregates)", "Filters rows", "Joins tables"], answer: 1,
+      explain: "GROUP BY bundles rows sharing a value so aggregates like COUNT/SUM can run per group. Sorting is ORDER BY." },
+    { q: "Which is the correct way to rename a column in the output?",
+      options: ["SELECT name AS student_name", "RENAME name TO student_name", "SELECT name = student_name", "ALIAS name student_name"], answer: 0,
+      explain: "AS creates an output alias: SELECT name AS student_name FROM …" },
+    { q: "What happens if you UPDATE without a WHERE clause?",
+      options: ["Nothing changes", "Only the first row changes", "Every row in the table changes", "SQL refuses to run it"], answer: 2,
+      explain: "Without WHERE, the UPDATE applies to ALL rows. Classic production disaster — always write the WHERE first!" }
+  ]
+};
+
+/* ============================ STATE ============================ */
+const $ = id => document.getElementById(id);
+const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const LETTERS = ["A", "B", "C", "D"];
+let sb = null, channel = null, hbTimer = null, helloTimer = null, watchTimer = null;
+let role = "host";
+let myId = localStorage.getItem("sr_id") || (localStorage.setItem("sr_id", crypto.randomUUID()), localStorage.getItem("sr_id"));
+let game = null;          // host-side authoritative game object
+let me = null;            // player-side
+let timers = [];          // UI countdown timers (cleared between phases)
+let currentView = null;
+let lastStateAt = 0;      // player: last time we heard from the host
+
+function clearTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
+function setView(name) {
+  document.querySelectorAll("[id^=view-]").forEach(el => el.classList.add("hidden"));
+  $("view-" + name).classList.remove("hidden");
+  currentView = "view-" + name;
+}
+function setConn(ok, txt) {
+  $("connPill").textContent = "● " + (txt || (ok ? "live" : "offline"));
+  $("connPill").style.color = ok ? "var(--accent2)" : "var(--danger)";
+}
+
+function route() {
+  clearTimers();
+  const hash = location.hash.replace("#", "");
+  if (hash.startsWith("host")) { role = "host"; setupHostView(); }
+  else if (hash.startsWith("join")) { role = "player"; setView("join"); }
+  else if (hash.startsWith("room/")) { role = "player"; const pin = hash.split("/")[1]; $("joinPin").value = pin; setView("join"); }
+  else setView("home");
+}
+window.addEventListener("hashchange", route);
+
+/* ============================ SUPABASE ============================ */
+function initSupabase() {
+  if (!sb) sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    realtime: { params: { eventsPerSecond: 20 } }
+  });
+  return true;
+}
+function ch(pin) {
+  if (channel && sb) sb.removeChannel(channel);
+  channel = sb.channel(`room:${pin}`, { config: { broadcast: { self: false }, presence: { key: myId } } });
+  channel.on("broadcast", { event: "msg" }, ({ payload }) => { console.log("[SR] recv", payload); onMessage(payload); });
+  channel.on("presence", { event: "sync" }, () => onPresenceSync());
+  return channel;
+}
+
+/* Presence is the server's own source of truth for who is in the room.
+   The host rebuilds its player list from it — no dependence on broadcasts. */
+function onPresenceSync() {
+  if (!channel || role !== "host" || !game) return;
+  const pres = channel.presenceState() || {};
+  let changed = false;
+  for (const [id, arr] of Object.entries(pres)) {
+    for (const p of arr) {
+      if (p.role !== "player") continue;
+      if (!game.players[id]) { game.players[id] = { name: p.name || "player", score: 0, votes: 0, correct: 0 }; changed = true; }
+      else if (game.players[id].name !== (p.name || "player")) { game.players[id].name = p.name || "player"; changed = true; }
+    }
+  }
+  if (changed) { renderLobbyPlayers(); broadcastState(); }
+}
+
+/* ============================ HOST ============================ */
+function setupHostView() {
+  const mod = $("cfgModule");
+  mod.innerHTML = Object.keys(MODULES).map(m => `<option>${m}</option>`).join("");
+  mod.onchange = refreshQuestionCounts;
+  refreshQuestionCounts();
+  setView("host-setup");
+}
+function refreshQuestionCounts() {
+  const bank = MODULES[$("cfgModule").value] || [];
+  const sel = $("cfgQuestions");
+  sel.innerHTML = "";
+  const steps = [...new Set([5, 10, 15, 20].filter(n => n <= bank.length))];
+  if (!steps.length) steps.push(bank.length);
+  steps.forEach(n => sel.innerHTML += `<option ${n === Math.min(10, bank.length) ? "selected" : ""}>${n}</option>`);
+}
+function newPin() { return String(Math.floor(100000 + Math.random() * 900000)); }
+
+$("btnCreateGame").onclick = async () => {
+  if (!initSupabase()) return;
+  const count = +$("cfgQuestions").value;
+  const secs = +$("cfgSeconds").value;
+  const threshold = +$("cfgThreshold").value;
+  const pin = newPin();
+  const qs = [...MODULES[$("cfgModule").value]].sort(() => Math.random() - .5).slice(0, count);
+  game = {
+    pin, phase: "lobby", questions: qs, qIndex: 0, secs, threshold,
+    players: {},
+    votes: {},
+    history: [],
+    endsAt: 0
+  };
+  await ch(pin).subscribe(status => setConn(status === "SUBSCRIBED"));
+  channel.track({ role: "host" });
+  $("lobbyPin").textContent = pin;
+  const joinUrl = location.origin + location.pathname + "#room/" + pin;
+  $("lobbyUrl").textContent = joinUrl;
+  $("lobbyQr").src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(joinUrl);
+  renderLobbyPlayers();
+  setView("host-lobby");
+  broadcastState();
+  if (hbTimer) clearInterval(hbTimer);
+  hbTimer = setInterval(broadcastState, 2000); // persistent heartbeat: late joiners always catch up
+};
+
+$("btnStartGame").onclick = () => startQuestion();
+
+function startQuestion() {
+  game.phase = "question";
+  game.votes = {};
+  game.endsAt = Date.now() + game.secs * 1000;
+  renderHostQuestion();
+  broadcastState();
+  clearTimers();
+  timers.push(setInterval(tickHost, 250));
+}
+function tickHost() {
+  const left = Math.max(0, game.endsAt - Date.now());
+  const total = game.secs * 1000;
+  $("timerText").textContent = Math.ceil(left / 1000);
+  $("timerFill").style.width = (left / total * 100) + "%";
+  $("voteCount").textContent = Object.keys(game.votes).length + " votes";
+  const present = Object.keys(game.players).length;
+  $("presentCount").textContent = present + " players in room";
+  if (left <= 0) endQuestion();
+}
+function renderHostQuestion() {
+  const q = game.questions[game.qIndex];
+  setView("host-question");
+  $("qNum").textContent = (game.qIndex + 1) + " / " + game.questions.length;
+  $("hqText").textContent = q.q;
+  $("hqCode").textContent = q.code || "";
+  $("hqCode").classList.toggle("hidden", !q.code);
+  $("voteCount").textContent = "0 votes";
+  $("presentCount").textContent = Object.keys(game.players).length + " players in room";
+}
+$("btnEndQuestion").onclick = () => endQuestion();
+
+function endQuestion() {
+  clearTimers();
+  game.phase = "reveal";
+  const q = game.questions[game.qIndex];
+  const present = Object.keys(game.players).length;
+  const tally = [0, 0, 0, 0];
+  for (const [pid, choice] of Object.entries(game.votes)) {
+    tally[choice]++;
+    const p = game.players[pid];
+    if (p) {
+      p.votes++;
+      if (choice === q.answer) { p.correct++; p.score += 100; }
+    }
+  }
+  const correctVotes = tally[q.answer];
+  const nonVoters = present - Object.keys(game.votes).length;
+  const classCorrectPct = present ? Math.round((correctVotes / present) * 100) : 0;
+  let majority = 0;
+  for (let i = 1; i < 4; i++) if (tally[i] > tally[majority]) majority = i;
+  const majorityCorrect = majority === q.answer;
+  game.history.push({ qIndex: game.qIndex, tally, correctVotes, nonVoters, present, classCorrectPct, majorityCorrect });
+  broadcastState();
+  renderHostReveal(q, tally, correctVotes, nonVoters, present, classCorrectPct, majority, majorityCorrect);
+}
+
+function renderHostReveal(q, tally, correctVotes, nonVoters, present, classCorrectPct, majority, majorityCorrect) {
+  setView("host-reveal");
+  $("revealQNum").textContent = (game.qIndex + 1);
+  $("revealText").textContent = q.q;
+  const box = $("revealOptions");
+  box.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const div = document.createElement("div");
+    div.className = "option opt" + (i + 1) + (i === q.answer ? " correct" : "");
+    const votes = tally[i] || 0;
+    const pct = present ? Math.round(votes / present * 100) : 0;
+    div.innerHTML = `<span class="tag">${LETTERS[i]}</span>${escapeHtml(opt)}
+      <div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div>
+      <span class="muted" style="font-size:.8rem">${votes} votes (${pct}%)</span>`;
+    box.appendChild(div);
+  });
+  $("revealExplain").innerHTML = `<b>Why:</b> ${escapeHtml(q.explain)}`;
+  $("revealMajority").innerHTML = `Majority answer: <b style="color:${majorityCorrect ? "var(--accent2)" : "var(--danger)"}">${LETTERS[majority]} ${majorityCorrect ? "✓ correct" : "✗ incorrect"}</b>`;
+
+  const avg = game.history.reduce((s, h) => s + h.classCorrectPct, 0) / game.history.length;
+  $("hwFill").style.width = Math.min(100, avg) + "%";
+  $("hwLabel").innerHTML = `This question: <b>${classCorrectPct}%</b> correct (${correctVotes}/${present}) — <b style="color:var(--warn)">${nonVoters} didn't vote</b>`;
+  $("hwAverage").innerHTML = `Class average: <b style="color:var(--accent2)">${Math.round(avg)}%</b> (need ≥ ${game.threshold}%)`;
+
+  const stats = [
+    ["✅", correctVotes + " correct"],
+    ["✋", nonVoters + " didn't vote (count as wrong)"],
+    ["🧑‍🎓", present + " in the room"],
+    ["📉", classCorrectPct + "% class accuracy"]
+  ];
+  $("revealStats").innerHTML = stats.map(([e, l]) => `<div class="stat"><div class="val">${e}</div><div class="lbl">${l}</div></div>`).join("");
+  $("btnNext").textContent = (game.qIndex + 1 < game.questions.length) ? "Next question →" : "See final verdict →";
+}
+
+$("btnNext").onclick = () => {
+  if (game.qIndex + 1 < game.questions.length) { game.qIndex++; startQuestion(); }
+  else finishGame();
+};
+function finishGame() {
+  clearTimers();
+  game.phase = "final";
+  broadcastState();
+  setView("host-final");
+  const avg = Math.round(game.history.reduce((s, h) => s + h.classCorrectPct, 0) / game.history.length);
+  const pass = avg >= game.threshold;
+  $("verdictBox").innerHTML = pass
+    ? `<div class="verdict pass">🎉 HOMEWORK SKIPPED! 🎉<div style="font-size:1rem; font-weight:400; margin-top:8px">Class average ${avg}% ≥ ${game.threshold}% — the class earned it.</div></div>`
+    : `<div class="verdict fail">📚 HOMEWORK STANDS 📚<div style="font-size:1rem; font-weight:400; margin-top:8px">Class average ${avg}% — needed ${game.threshold}%. Better luck next class!</div></div>`;
+  $("finalBreakdown").innerHTML = game.history.map(h => {
+    const q = game.questions[h.qIndex];
+    const good = h.classCorrectPct >= game.threshold;
+    return `<div class="lb-row ${good ? "top" : ""}" style="font-size:.95rem">
+      <span>Q${h.qIndex + 1}: ${escapeHtml(q.q.slice(0, 60))}${q.q.length > 60 ? "…" : ""}</span>
+      <b style="color:${good ? "var(--accent2)" : "var(--danger)"}">${h.classCorrectPct}%</b></div>`;
+  }).join("");
+  const totalNonVoters = game.history.reduce((s, h) => s + h.nonVoters, 0);
+  $("finalStats").innerHTML = [
+    ["🎯", avg + "% class average"],
+    ["✋", totalNonVoters + " total missed votes"],
+    ["🏆", game.questions.length + " questions"]
+  ].map(([e, l]) => `<div class="stat"><div class="val">${e}</div><div class="lbl">${l}</div></div>`).join("");
+  const ranked = Object.values(game.players).sort((a, b) => b.score - a.score).slice(0, 10);
+  $("finalLeaderboard").innerHTML = ranked.length
+    ? ranked.map((p, i) => `<div class="lb-row ${i === 0 ? "top" : ""}"><span>${i + 1}. ${escapeHtml(p.name)}</span><b>${p.score} pts</b></div>`).join("")
+    : `<p class="muted">No players joined.</p>`;
+}
+$("btnPlayAgain").onclick = () => { location.hash = "host"; location.reload(); };
+
+function broadcastState() {
+  if (!channel || !game) return;
+  const q = game.questions[game.qIndex];
+  const last = game.history[game.history.length - 1];
+  const avg = Math.round(game.history.reduce((s, h) => s + h.classCorrectPct, 0) / game.history.length);
+  const payload = {
+    phase: game.phase, qIndex: game.qIndex, total: game.questions.length,
+    endsAt: game.endsAt, secs: game.secs, threshold: game.threshold,
+    q: game.phase === "question" ? { q: q.q, code: q.code || null, options: q.options } : null,
+    players: Object.values(game.players).map(p => p.name),
+    reveal: game.phase === "reveal" && last ? {
+      answer: q.answer, explain: q.explain,
+      correctVotes: last.correctVotes, present: last.present,
+      nonVoters: last.nonVoters, classCorrectPct: last.classCorrectPct
+    } : null,
+    final: game.phase === "final" ? { avg, pass: avg >= game.threshold } : null
+  };
+  channel.send({ type: "broadcast", event: "msg", payload });
+}
+
+/* ============================ PLAYER ============================ */
+let myChoice = null, curQIndex = -1, curRevealQ = -1;
+
+$("btnJoinRoom").onclick = async () => {
+  const pin = $("joinPin").value.trim();
+  const name = $("joinName").value.trim() || "anon" + Math.floor(Math.random() * 999);
+  if (pin.length !== 6) { alert("Enter the 6-digit PIN from the projector."); return; }
+  if (!initSupabase()) return;
+  me = { name, pin, score: 0 };
+  myChoice = null;
+  lastStateAt = 0;
+  await ch(pin).subscribe(status => {
+    setConn(status === "SUBSCRIBED", status === "SUBSCRIBED" ? "live" : status.toLowerCase());
+    if (status === "SUBSCRIBED") sendHello();
+  });
+  channel.track({ role: "player", name });
+  setView("player-lobby");
+  $("pWelcome").textContent = `Welcome, ${name}! 🎮`;
+  $("pLobbyCount").textContent = "Connecting to the room…";
+  // Keep announcing until the host confirms us with a state message (max ~15s).
+  if (helloTimer) clearInterval(helloTimer);
+  let attempts = 0;
+  helloTimer = setInterval(() => {
+    attempts++;
+    if (lastStateAt || attempts > 8) { clearInterval(helloTimer); return; }
+    sendHello();
+  }, 2000);
+  // Connection watchdog
+  if (watchTimer) clearInterval(watchTimer);
+  watchTimer = setInterval(() => {
+    if (!lastStateAt) return;
+    const stale = Date.now() - lastStateAt > 8000;
+    if (stale) setConn(false, "reconnecting…");
+    else setConn(true, "live");
+  }, 2000);
+};
+
+function sendHello() {
+  if (!channel) return;
+  channel.send({ type: "broadcast", event: "msg", payload: { t: "hello", id: myId, name: me.name, pin: me.pin } })
+    .then(res => { if (res && res.error) console.error("[SR] hello failed", res); else console.log("[SR] hello sent"); });
+}
+
+function onMessage(p) {
+  if (role === "host") hostHandle(p);
+  else playerHandle(p);
+}
+
+/* ---------- host receives ---------- */
+function hostHandle(p) {
+  if (!game) return;
+  if (p.t === "hello") {
+    // Register from the hello broadcast (presence sync is the backup path).
+    if (!game.players[p.id]) game.players[p.id] = { name: p.name || "player", score: 0, votes: 0, correct: 0 };
+    else game.players[p.id].name = p.name || game.players[p.id].name;
+    renderLobbyPlayers();
+    broadcastState(); // confirm to the phone immediately
+  } else if (p.t === "vote" && game.phase === "question" && p.qIndex === game.qIndex) {
+    // Votes count even if the player somehow wasn't registered (auto-register).
+    if (!game.players[p.id]) game.players[p.id] = { name: p.name || "player", score: 0, votes: 0, correct: 0 };
+    if (game.votes[p.id] === undefined) game.votes[p.id] = p.choice;
+    $("voteCount").textContent = Object.keys(game.votes).length + " votes";
+  }
+}
+function renderLobbyPlayers() {
+  const names = Object.values(game.players).map(p => p.name);
+  $("lobbyPlayers").innerHTML = names.map(n => `<span class="player-chip">👋 ${escapeHtml(n)}</span>`).join("");
+  $("lobbyPlayerCount").textContent = names.length + " joined";
+  $("playerCountTitle").textContent = `Players (${names.length})`;
+  $("btnStartGame").disabled = names.length === 0;
+}
+
+/* ---------- player receives ---------- */
+function playerHandle(s) {
+  if (!s || !s.phase) return;
+  lastStateAt = Date.now();
+  if (s.phase === "lobby") {
+    setView("player-lobby");
+    $("pLobbyPlayers").innerHTML = (s.players || []).map(n => `<span class="player-chip">${escapeHtml(n)}</span>`).join("");
+    $("pLobbyCount").textContent = (s.players || []).length + " players in the room";
+  } else if (s.phase === "question" && s.q) {
+    if (currentView !== "view-player-question" || s.qIndex !== curQIndex) {
+      curQIndex = s.qIndex;
+      myChoice = null;
+      setView("player-question");
+      clearTimers();
+      timers.push(setInterval(() => {
+        const left = Math.max(0, s.endsAt - Date.now());
+        $("pTimer").textContent = Math.ceil(left / 1000);
+        $("pTimerFill").style.width = (left / (s.secs * 1000) * 100) + "%";
+      }, 250));
+    }
+    $("pQNum").textContent = `Q ${s.qIndex + 1}/${s.total}`;
+    $("pMyScore").textContent = me.score + " pts";
+    $("pqText").textContent = s.q.q;
+    $("pqCode").textContent = s.q.code || "";
+    $("pqCode").classList.toggle("hidden", !s.q.code);
+    const sig = s.qIndex + "|" + s.q.options.join("§");
+    const box = $("pOptions");
+    if (box.dataset.sig !== sig) {
+      box.dataset.sig = sig;
+      if (myChoice === null) {
+        box.innerHTML = "";
+        s.q.options.forEach((opt, i) => {
+          const b = document.createElement("button");
+          b.className = "option opt" + (i + 1);
+          b.innerHTML = `<span class="tag">${LETTERS[i]}</span><span>${escapeHtml(opt)}</span>`;
+          b.onclick = () => vote(i);
+          box.appendChild(b);
+        });
+      }
+    }
+  } else if (s.phase === "reveal" && s.reveal) {
+    clearTimers();
+    if (curRevealQ !== s.qIndex) {
+      curRevealQ = s.qIndex;
+      setView("player-reveal");
+      const correct = myChoice === s.reveal.answer;
+      if (correct && myChoice !== null) me.score += 100;
+      $("pVerdict").innerHTML = myChoice === null
+        ? `😴 You didn't vote — it counts against the class!`
+        : correct ? `✅ Correct! +100 pts` : `❌ Nope — the answer was <b>${LETTERS[s.reveal.answer]}</b>`;
+      $("pRevealDetail").innerHTML = `You picked: <b>${myChoice !== null ? LETTERS[myChoice] : "—"}</b> · Correct: <b>${LETTERS[s.reveal.answer]}</b> · Class: <b>${s.reveal.classCorrectPct}%</b> (${s.reveal.nonVoters} didn't vote)`;
+      $("pExplanation").innerHTML = `<b>Why:</b> ${escapeHtml(s.reveal.explain)}`;
+      $("pClassMeter").innerHTML = `Class needs to average <b style="color:var(--accent2)">${s.threshold}%</b> to skip homework 📚→🎉`;
+    }
+    myChoice = null;
+  } else if (s.phase === "final" && s.final) {
+    clearTimers();
+    if (currentView !== "view-player-final") setView("player-final");
+    $("pFinalVerdict").innerHTML = s.final.pass ? `🎉 HOMEWORK SKIPPED!` : `📚 Homework stands…`;
+    $("pFinalDetail").textContent = s.final.pass
+      ? `The class averaged ${s.final.avg}% — you all earned it.`
+      : `The class averaged ${s.final.avg}%. Review and redeem yourselves next game!`;
+    $("pFinalClass").textContent = `Your score: ${me.score} pts`;
+  }
+}
+function vote(i) {
+  if (myChoice !== null) return;
+  myChoice = i;
+  const box = $("pOptions");
+  [...box.children].forEach((b, idx) => {
+    b.classList.toggle("selected", idx === i);
+    if (idx !== i) b.classList.add("dim");
+    b.onclick = null;
+  });
+  $("pVoteNote").textContent = "✓ Vote locked in";
+  channel.send({ type: "broadcast", event: "msg", payload: { t: "vote", id: myId, name: me.name, qIndex: curQIndex, choice: i } })
+    .then(res => {
+      if (res && res.error) { console.error("[SR] vote failed", res); $("pVoteNote").textContent = "⚠️ Vote failed — tap an answer again"; myChoice = null; box.dataset.sig = ""; }
+      else console.log("[SR] vote sent");
+    });
+}
+
+// route on load
+route();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" nonce="n1XhUx8fbI99h0ZYsJQSeQ==" data-cf-beacon='{"version":"2024.11.0","token":"36b4216ae2dc4d5488c249161e71fe1e","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
