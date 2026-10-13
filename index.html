@@ -341,61 +341,31 @@ const SUPABASE_ANON_KEY = "sb_publishable_iFZB4kApTYnkavLk3XPQVw_paYTcHl5";
    Question shape: q, options[4], answer (0-3), explain, code? (optional snippet)
 ================================================================ */
 const MODULES = {
-  "Day 1 — Data vs. Information vs. Insights": [
-    { q: "A campus system exports: 4127, 7:42 AM, Grill. Nobody has explained the entries. What are they?",
-      options: ["Data", "Information", "Insights", "Knowledge"], answer: 0,
-      explain: "You can't tell what these values mean, so they are still data. Naming the context — 'that's student 4127's breakfast swipe' — would make them information." },
-    { q: "Your dining app says: 21 of 50 meal swipes used this week. What is that?",
-      options: ["Data", "Information", "Insights", "Knowledge"], answer: 1,
-      explain: "The app counted your swipes and added context, so the number means something to you. Processed facts like this are information." },
-    { q: "Staff notice students who skip breakfast spend 30% more at night. What is that finding?",
-      options: ["Data", "Information", "Insights", "Knowledge"], answer: 2,
-      explain: "A pattern found by comparing many records, one you can act on — like promoting breakfast — is an insight." },
-    { q: "The head chef uses years of reports and experience to plan Monday staffing. That ability is…",
-      options: ["Data", "Information", "Insights", "Knowledge"], answer: 3,
-      explain: "Insights from reports, plus experience no query can give, add up to knowledge. That's why the chef can plan without a fresh report." },
-    { q: "Before anyone builds a report, each swipe time saved by a card reader is…",
-      options: ["Information", "Data", "Insights", "Knowledge"], answer: 1,
-      explain: "Each saved swipe time is one recorded fact — data. Totals and summaries built from them later are information." },
-    { q: "In a database, all the meal swipe records are stored together in a…",
-      options: ["Table", "Row", "Column", "Query"], answer: 0,
-      explain: "A table holds many records of the same kind. Each individual swipe is one record inside it." },
-    { q: "The library reports 4,210 entries were logged this month. What is that figure?",
-      options: ["Data", "Insights", "Information", "Knowledge"], answer: 2,
-      explain: "Counting all the entries into one meaningful total is processing. A summarized number like this is information." },
-    { q: "A report finds gym check-ins spike every January and fade by March. What is that finding?",
-      options: ["Data", "Information", "Knowledge", "Insights"], answer: 3,
-      explain: "The trend explains behavior and suggests an action, like adding staff in January. A pattern you can act on is an insight." },
-    { q: "One single meal swipe record in the system is a…",
-      options: ["Table", "Row", "Column", "Query"], answer: 1,
-      explain: "Each swipe is one record — one row in the table. The row holds that swipe's time, student, and station." },
-    { q: "An RA's sheet lists every dorm unlock with labeled columns: time, student, door. What is it?",
-      options: ["Information", "Insights", "Knowledge", "Data"], answer: 0,
-      explain: "The labels tell you what each value means, so the organized sheet is information. The same values with no explanation would still be data." },
-    { q: "Every swipe record has a time field. That shared field is a…",
-      options: ["Table", "Row", "Column", "Query"], answer: 2,
-      explain: "A field that appears in every record, like time, is a column. Each individual record is a row." },
-    { q: "The dining hall reports it served 9,300 meals last week. What is that report?",
-      options: ["Information", "Data", "Insights", "Knowledge"], answer: 0,
-      explain: "Adding up the swipe records produced one meaningful total. Summarized numbers like this are information." },
-    { q: "Your app predicts your meal swipes will run out five days early. What is the prediction?",
-      options: ["Data", "Insights", "Information", "Knowledge"], answer: 1,
-      explain: "The app studied your usage pattern and can guide an action, like pacing your swipes. That's an insight." },
-    { q: "'Show me every Grill swipe from today' is a request to the database. What is it?",
-      options: ["Table", "Row", "Column", "Query"], answer: 3,
-      explain: "A question you send to the database is a query. Queries pull out exactly the records you ask for." },
-    { q: "The swipe records, check-in logs, and access lists are all kept in one…",
-      options: ["Table", "Row", "Database", "Column"], answer: 2,
-      explain: "A database holds all the related tables. Each table inside it stores one kind of record." },
-    { q: "What does SQL stand for?",
-      options: ["Simple Query Language", "Sequential Query Language", "Standard Question Library", "Structured Query Language"], answer: 3,
-      explain: "SQL is the standard language for asking relational databases questions — the tool that turns data into information." },
-    { q: "In a relational database, what connects two tables together?",
-      options: ["File names", "Shared keys", "Hyperlinks", "Passwords"], answer: 1,
-      explain: "Tables connect by matching values, like a student ID appearing in both tables. Those shared columns are keys." },
-    { q: "What kind of software creates and manages a database for you?",
-      options: ["A spreadsheet app", "A DBMS (database management system)", "A web browser", "A compiler"], answer: 1,
-      explain: "Programs like MySQL, Postgres, or SQL Server are database management systems — they store the data, keep it safe, and answer your SQL queries." }
+  "Day 1 — Data to Decisions & Databases": [
+    {"q": "You see these numbers on the board: 92, 78, 85, 61. No labels. What are they?", "options": ["Insights", "Raw data", "Decisions", "A conclusion"], "answer": 1, "explain": "Without context, the numbers are raw data. We do not yet know what they represent."},
+    {"q": "Now you learn those numbers are exam scores out of 100. What did we add?", "options": ["A decision", "A primary key", "Context that makes the data meaningful", "Proof of a trend"], "answer": 2, "explain": "Knowing what the numbers represent turns them into useful information."},
+    {"q": "A report says the class average on Exam 1 was 80.5%. This is best described as…", "options": ["Information", "A decision", "A database relationship", "Proof of causation"], "answer": 0, "explain": "The average summarizes exam-score data into meaningful information."},
+    {"q": "Students with low attendance also tend to have lower exam scores. This finding is a potential…", "options": ["Primary key", "Raw data point", "Business decision", "Insight"], "answer": 3, "explain": "The relationship is a pattern worth investigating. It may help guide action, but does not establish cause."},
+    {"q": "You are the professor. After finding a possible attendance problem, which is a DECISION?", "options": ["Record each exam score", "Calculate the class average", "Offer support to frequently absent students", "Identify the student_id column"], "answer": 2, "explain": "A decision is a choice about what to do based on the available evidence and judgment."},
+    {"q": "Which order best describes how analytics creates value?", "options": ["Decisions → Data → Insights → Information", "Data → Information → Insights → Decisions", "Insights → Data → Decisions → Information", "Information → Decisions → Data → Insights"], "answer": 1, "explain": "We collect data, give it meaning, identify useful patterns, then choose an action."},
+    {"q": "Two students with the lowest exam scores also missed the most classes. What can we safely conclude?", "options": ["Missing class definitely caused low scores", "The exam must be unfair", "Attendance and scores may be related", "Every absent student will fail"], "answer": 2, "explain": "An association is not proof of causation. Other factors could explain the pattern."},
+    {"q": "Your experience says attendance does not matter, but the data suggests otherwise. Best response?", "options": ["Ignore the data", "Assume the data is always right", "Stop collecting attendance", "Check data quality and investigate the disagreement"], "answer": 3, "explain": "Treat intuition as a hypothesis, not a verdict. Test assumptions and investigate the data."},
+    {"q": "You want to know whether tutoring improves exam performance. What additional data would help most?", "options": ["Student shoe sizes", "Tutoring participation and exam results", "The classroom paint color", "The number of campus parking spaces"], "answer": 1, "explain": "To examine a relationship, we need comparable records of tutoring participation and performance."},
+    {"q": "A college stores Students, Courses, and Enrollments in separate related tables. Together they form a…", "options": ["Database", "Single row", "Column", "SQL command"], "answer": 0, "explain": "A relational database organizes related records into tables."},
+    {"q": "In a Students table, one student record is a…", "options": ["Column", "Query", "Row", "Database"], "answer": 2, "explain": "Each row represents one record, such as one student."},
+    {"q": "In a Students table, student_id, first_name, and major_id are…", "options": ["Rows", "Columns", "Databases", "Reports"], "answer": 1, "explain": "Columns are fields describing the same attribute for each record."},
+    {"q": "Two students have the same first and last name. What reliably distinguishes their records?", "options": ["The first_name column", "Their row position", "Their major", "A unique student_id"], "answer": 3, "explain": "A primary key uniquely identifies each row, even when names are duplicated."},
+    {"q": "Why use student_id instead of student_name to connect tables?", "options": ["IDs are unique and stable identifiers", "Names can never change", "SQL cannot store names", "Names are always numbers"], "answer": 0, "explain": "Names can repeat or change. A stable unique ID is safer for relationships."},
+    {"q": "A Students table repeats the text “Marketing” for 300 students. What is a better design?", "options": ["Delete the major information", "Create 300 different tables", "Create a Majors table and store major_id in Students", "Put every student in one column"], "answer": 2, "explain": "Store major details once in Majors and reference the major using major_id."},
+    {"q": "The Marketing department changes its office location. Why is a separate Majors table helpful?", "options": ["It automatically raises grades", "You update the office location in one place", "It removes the need for student IDs", "It makes every student a new table"], "answer": 1, "explain": "Normalization reduces repeated data and avoids inconsistent updates."},
+    {"q": "Where should major_office_location usually belong?", "options": ["Students table", "ExamScores table", "Attendance table", "Majors table"], "answer": 3, "explain": "The office belongs to the major, not to an individual student."},
+    {"q": "What is the general name for organizing tables to reduce redundancy and update problems?", "options": ["Normalization", "Sorting", "Encryption", "Visualization"], "answer": 0, "explain": "Normalization helps place attributes in appropriate tables and minimize data anomalies."},
+    {"q": "Students has major_id = 2. Majors says major_id 2 = Finance. What does a JOIN let us show?", "options": ["Only the student ID", "Every course grade automatically", "The student alongside “Finance”", "A new permanent database"], "answer": 2, "explain": "A JOIN matches related rows on major_id and lets us display information from both tables."},
+    {"q": "Which condition correctly connects Students to Majors?", "options": ["students.student_id = majors.major_id", "students.major_id = majors.major_id", "students.first_name = majors.major_name", "students.major_id = majors.major_name"], "answer": 1, "explain": "Both tables share major_id; matching those values relates each student to a major."},
+    {"q": "After joining Students and Majors, you count students by major. What have you produced?", "options": ["A staffing decision", "Proof that one major is better", "A primary key", "Information about enrollment by major"], "answer": 3, "explain": "Counts by major are information. An insight requires interpreting what the numbers mean for a question or decision."},
+    {"q": "Marketing enrollment doubled while other majors stayed flat. What is the best next step?", "options": ["Investigate why demand changed before changing staffing", "Immediately cancel other majors", "Assume the database is broken", "Ignore the trend"], "answer": 0, "explain": "The trend is a potential insight. Investigate context before making a high-impact decision."},
+    {"q": "AI writes a SQL query that runs successfully. What do you still need to check?", "options": ["Whether it uses capital letters", "Whether the output looks colorful", "Whether the query answers the right business question", "Whether it has at least 20 lines"], "answer": 2, "explain": "Syntactically valid SQL can still use wrong joins, filters, or assumptions and produce misleading results."},
+    {"q": "The ProImprint sales leader wants to find customers who have stopped ordering. What should we clarify FIRST?", "options": ["Which chart colors to use", "What counts as “stopped ordering” and what decision it supports", "Which AI model to use", "How many columns SQL allows"], "answer": 1, "explain": "Start with the business question and define terms. Then determine what customer and order data is needed."}
   ],
   "SQL 101 Basics": [
     { q: "Which SQL statement is used to extract data from a database?",
@@ -571,7 +541,10 @@ $("btnCreateGame").onclick = async () => {
   const secs = +$("cfgSeconds").value;
   const threshold = +$("cfgThreshold").value;
   const pin = newPin();
-  const qs = [...MODULES[$("cfgModule").value]].sort(() => Math.random() - .5).slice(0, count);
+  const moduleName = $("cfgModule").value;
+  const bank = [...MODULES[moduleName]];
+  // Day 1 follows the lesson progression; other modules stay randomized.
+  const qs = (moduleName.startsWith("Day 1") ? bank : bank.sort(() => Math.random() - .5)).slice(0, count);
   game = {
     pin, phase: "lobby", questions: qs, qIndex: 0, secs, threshold,
     players: {},
