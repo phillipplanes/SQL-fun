@@ -424,6 +424,62 @@ const MODULES = {
     { q: "What happens if you UPDATE without a WHERE clause?",
       options: ["Nothing changes", "Only the first row changes", "Every row in the table changes", "SQL refuses to run it"], answer: 2,
       explain: "Without WHERE, the UPDATE applies to ALL rows. Classic production disaster — always write the WHERE first!" }
+  ],
+  "Round 2 — Relational Database Basics": [
+    { q: "Students, Courses, Dorms — the 'things' a database stores data about are called…",
+      options: ["Records", "Entities", "Columns", "Files"], answer: 1,
+      explain: "Each 'thing' is an entity. One entity (like Student) gets its own table; each individual student is a row." },
+    { q: "A database that organizes data into tables of rows and columns is…",
+      options: ["Relational", "NoSQL", "Graph", "Flat file"], answer: 0,
+      explain: "Tables + rows + columns + keys = a relational database. You'll spend SQL 101 inside one." },
+    { q: "Every meal swipe on campus gets stored together in one…",
+      options: ["Column", "Key", "Table", "Row"], answer: 2,
+      explain: "A table holds all the records about one kind of thing — all meal swipes live in the Meal_Swipes table." },
+    { q: "One student's full record in the Students table is one…",
+      options: ["Row", "Column", "Schema", "Table"], answer: 0,
+      explain: "A row is one complete record: one student's ID, name, GPA, meal plan — all together." },
+    { q: "'first_name', 'gpa', 'meal_plan' — these fields are…",
+      options: ["Rows", "Tables", "Keys", "Columns"], answer: 3,
+      explain: "Columns are the vertical fields — every student has a value in each one." },
+    { q: "The blueprint that defines your tables, columns, and data types is the…",
+      options: ["Schema", "Report", "Query", "Index"], answer: 0,
+      explain: "The schema is the structure: what tables exist, what columns they have, what type of data each holds." },
+    { q: "The one column guaranteed to identify exactly one student is the…",
+      options: ["Foreign key", "Primary key", "Attribute", "Cell"], answer: 1,
+      explain: "A primary key uniquely identifies each row — no duplicates, no NULLs. student_id, not first name." },
+    { q: "In Enrollments, the column pointing back to Students is a…",
+      options: ["Primary key", "Attribute", "Row", "Foreign key"], answer: 3,
+      explain: "A foreign key references the primary key of another table — it's how tables connect." },
+    { q: "Why is student_id a better primary key than last_name?",
+      options: ["Names repeat", "Names are long", "Names are private", "Names are old"], answer: 0,
+      explain: "Two students can share a last name — keys must be unique. student_id never repeats." },
+    { q: "A key made of two columns together (student_id + course_id) is a…",
+      options: ["Primary key", "Composite key", "Foreign key", "Index"], answer: 1,
+      explain: "Two columns combined into one unique key = composite key. Perfect for Enrollments, where a student can take many courses." },
+    { q: "In table language, 'gpa' is one ___ of each student.",
+      options: ["Entity", "Table", "Attribute", "Schema"], answer: 2,
+      explain: "Attribute = one characteristic, stored as a column. Entities have attributes; students have GPAs." },
+    { q: "Another name for a single row is a…",
+      options: ["Column", "Schema", "Record", "File"], answer: 2,
+      explain: "Row = record = one entry. All three words mean the same horizontal slice of data." },
+    { q: "The Enrollments table connecting Students and Courses represents a…",
+      options: ["Attribute", "Relationship", "Cell", "Type"], answer: 1,
+      explain: "Relationships connect entities. Enrollments is how the database knows who's in which course." },
+    { q: "Which key must never be NULL or duplicated?",
+      options: ["Foreign key", "Index", "Cell", "Primary key"], answer: 3,
+      explain: "Primary keys have two iron rules: never NULL, never duplicated. That's what makes them reliable identifiers." },
+    { q: "The kind of value a column holds (text, number, date) is its…",
+      options: ["Data type", "Row", "Cell", "Key"], answer: 0,
+      explain: "Data types keep data sane: names are text, gpa is a number, swipe times are timestamps." },
+    { q: "Two students can never share the same value in which column?",
+      options: ["First name", "Student ID", "GPA", "Meal plan"], answer: 1,
+      explain: "Student ID is the primary key — unique by definition. Roommates can share a meal plan; they can't share an ID." },
+    { q: "Where a row and a column meet inside a table is a…",
+      options: ["Row", "Schema", "Cell", "Index"], answer: 2,
+      explain: "A cell holds exactly one value: student #4127's GPA. Row 4127, column gpa → one cell." },
+    { q: "Which key links Enrollments back to Students?",
+      options: ["Primary key", "Composite key", "Index", "Foreign key"], answer: 3,
+      explain: "Foreign keys point across tables. Enrollments' student_id is a foreign key to Students' primary key." }
   ]
 };
 
@@ -543,8 +599,9 @@ $("btnCreateGame").onclick = async () => {
   const pin = newPin();
   const moduleName = $("cfgModule").value;
   const bank = [...MODULES[moduleName]];
-  // Day 1 follows the lesson progression; other modules stay randomized.
-  const qs = (moduleName.startsWith("Day 1") ? bank : bank.sort(() => Math.random() - .5)).slice(0, count);
+  // Day 1 and Round 2 follow the lesson progression; other modules stay randomized.
+  const ordered = moduleName.startsWith("Day 1") || moduleName.startsWith("Round 2");
+  const qs = (ordered ? bank : bank.sort(() => Math.random() - .5)).slice(0, count);
   game = {
     pin, phase: "lobby", questions: qs, qIndex: 0, secs, threshold,
     players: {},
