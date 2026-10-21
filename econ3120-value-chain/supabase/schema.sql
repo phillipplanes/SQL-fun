@@ -21,18 +21,33 @@ create table if not exists public.contracts (
   unique (provider_team, needer_team, field)
 );
 
--- Classroom setting: no auth, no sensitive data. Open access via
--- anon key is acceptable for a single class session. If you want
--- a token of friction, replace 'anon' with a request you share.
+-- RLS on, with an allow-all policy for the anon key: the classroom app
+-- has no login, and there is no sensitive data. Anyone with the anon key
+-- (i.e. anyone who opens the site) can read/write these two tables.
+alter table public.team_fields enable row level security;
+alter table public.contracts enable row level security;
+
+drop policy if exists "allow all team_fields" on public.team_fields;
 create policy "allow all team_fields" on public.team_fields
   for all to anon using (true) with check (true);
 
+drop policy if exists "allow all contracts" on public.contracts;
 create policy "allow all contracts" on public.contracts
   for all to anon using (true) with check (true);
 
 -- Enable realtime so the teacher board and team views update live.
-alter publication supabase_realtime add table public.team_fields;
-alter publication supabase_realtime add table public.contracts;
+-- (Guarded so re-running the script doesn't error on "already a member".)
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables
+                  where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'team_fields') then
+    alter publication supabase_realtime add table public.team_fields;
+  end if;
+  if not exists (select 1 from pg_publication_tables
+                  where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'contracts') then
+    alter publication supabase_realtime add table public.contracts;
+  end if;
+end $$;
 
 -- Before each class, wipe the slate:
 -- delete from public.contracts;
