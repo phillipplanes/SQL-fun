@@ -9,8 +9,9 @@ Two live classroom apps sharing one site and one Supabase project:
 /econ3120-value-chain/  Source for the value-chain app (Vite + React)
 ```
 
-Deployed as a static site from this repo (Cloudflare Pages, no build step — the
-value-chain app is pre-built and its output is committed at `/value-chain/`).
+Deployed via **GitHub Pages** from this repo's `main` branch at
+<https://phillipplanes.github.io/SQL-fun/> — no build step; the value-chain app is
+pre-built and its output is committed at `/value-chain/`.
 
 ## The two apps
 
@@ -64,8 +65,10 @@ For a fresh start each class, run the two `delete from` lines at the bottom of s
 
 ### 3. Deploy
 
-The repo is a plain static site — host it anywhere that serves files as-is
-(Cloudflare Pages, Netlify drop, GitHub Pages from branch). The join-QR code encodes your
+GitHub Pages serves this repo's `main` branch as-is (Settings → Pages → deploy from
+branch, root) — that's how the current site runs. Pushes go live in a minute or two.
+The site is a plain static folder tree, so it can also be hosted anywhere that serves
+files as-is (Netlify drop, Cloudflare Pages, etc.). The join-QR code encodes your
 deployed URL, so the site must be online (not `file://`) for phones to join.
 
 ---

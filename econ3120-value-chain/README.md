@@ -9,7 +9,8 @@ Stack: React (Vite) + Supabase (Postgres + Realtime).
 
 This app lives inside the **SQL-fun** repo and shares its Supabase project with the
 SQL Royale quiz. The built output is committed at `/value-chain/` and served statically
-by Cloudflare Pages — no server, no secrets.
+by GitHub Pages at <https://phillipplanes.github.io/SQL-fun/value-chain/> — no server,
+no secrets.
 
 ## 1. Supabase setup (one time)
 
@@ -39,9 +40,9 @@ npm run build
 rm -rf ../value-chain && cp -R dist ../value-chain
 ```
 
-Commit both the source change and the refreshed `/value-chain/` output; Cloudflare Pages
-picks it up on push. `vite.config.js` sets `base: "/value-chain/"` — keep that in sync
-with the deployed folder name.
+Commit both the source change and the refreshed `/value-chain/` output; GitHub Pages
+picks it up on push. `vite.config.js` uses a relative `base: "./"`, so the built app
+works at any subpath or custom domain.
 
 ## 3. Using it in class
 
