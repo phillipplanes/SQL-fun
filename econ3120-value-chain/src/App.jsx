@@ -126,7 +126,16 @@ function Pill({ children, color = "bg-slate-100 text-slate-700" }) {
 // ============================================================
 
 export default function App() {
-  const [team, setTeam] = useState(() => localStorage.getItem("econ3120-team"));
+  const [team, setTeam] = useState(() => {
+    // Validate the saved choice: a stale value from an earlier app version
+    // would make ENTITIES[team] undefined and crash the first render.
+    const saved = localStorage.getItem("econ3120-team");
+    if (!saved || !ENTITIES[saved]) {
+      if (saved) localStorage.removeItem("econ3120-team");
+      return null;
+    }
+    return saved;
+  });
   const [teacherMode, setTeacherMode] = useState(
     () => window.location.hash === "#teacher"
   );
