@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 
 // ============================================================
-// ECON3120 — Proprint.com Value Chain Simulation
+// ECON3120 — ProImprint Value Chain Simulation
 // Supabase-backed: each team's fields sync live to the database;
 // Teacher Mode reads every team and marks contracts in real time.
 // ============================================================
@@ -14,7 +14,7 @@ const ENTITIES = {
     color: "bg-blue-100 border-blue-300 text-blue-900",
     accent: "bg-blue-500",
     brief:
-      "You order custom printed products from Proprint by phone or website. You supply artwork and expect your order to arrive at your door — drop-shipped. You care about price, proofing your artwork, and delivery dates.",
+      "You order custom printed products from ProImprint by phone or website. You supply artwork and expect your order to arrive at your door — printed and shipped by ProImprint. You care about price, proofing your artwork, and delivery dates.",
     prompt:
       "Think through an order from YOUR side. What do you have to tell the sales rep? What do you expect back? Every answer is a field.",
   },
@@ -24,19 +24,19 @@ const ENTITIES = {
     color: "bg-amber-100 border-amber-300 text-amber-900",
     accent: "bg-amber-500",
     brief:
-      "You take orders (phone & website) for Proprint. You don't make or own anything — you collect artwork, price the job, create the PO, and coordinate the distributor and supplier until the order is drop-shipped to the customer.",
+      "You take orders (phone & website) for ProImprint. You don't make or own anything — you collect artwork, price the job, create the PO, and coordinate ProImprint's own operations and the supplier until the order reaches the customer.",
     prompt:
       "Walk a call from start to finish. What do you write down? What do you have to go find out from other teams before you can promise anything?",
   },
   distributor: {
-    name: "Distributor",
+    name: "ProImprint Operations",
     emoji: "📦",
     color: "bg-violet-100 border-violet-300 text-violet-900",
     accent: "bg-violet-500",
     brief:
-      "You sit between Proprint and the suppliers. You source the right supplier for each job, hold product information and inventory, and route purchase orders. You never touch the product yourself — it's drop-shipped.",
+      "ProImprint IS the distributor — there is no other. You source the right supplier for each product, hold product and inventory data, print the customer's artwork on the goods, and ship the finished order straight to the customer.",
     prompt:
-      "When a PO lands on your desk, what must you already know? What do you have to pass along to make the drop-ship work?",
+      "When a job lands on your desk, what must you already know? What do you have to pass along to the supplier, and what do you send out when the truck leaves?",
   },
   supplier: {
     name: "Supplier",
@@ -44,9 +44,9 @@ const ENTITIES = {
     color: "bg-emerald-100 border-emerald-300 text-emerald-900",
     accent: "bg-emerald-500",
     brief:
-      "You produce the printed goods. You receive a PO, schedule production, and drop-ship the finished order directly to the end customer — you ship to an address you get from the PO, and you never see the customer.",
+      "You supply blank products to ProImprint — your catalog can carry one product or hundreds. You receive a PO, produce the goods, and ship them to ProImprint for printing. You never see the customer, and the printing isn't yours.",
     prompt:
-      "You can't start production on an incomplete PO. What has to be on it? What do you send back out when the truck leaves?",
+      "You can't start production on an incomplete PO. What has to be on it? What do you send back with the shipment — and who is it really for?",
   },
   management: {
     name: "Management",
@@ -54,7 +54,7 @@ const ENTITIES = {
     color: "bg-rose-100 border-rose-300 text-rose-900",
     accent: "bg-rose-500",
     brief:
-      "You run Proprint. You don't touch orders, but you need reporting: revenue, margin per order, supplier performance, and on-time delivery. Every field you need must be captured somewhere by someone else.",
+      "You run ProImprint. You don't touch orders, but you need reporting: revenue, margin per order, supplier performance, and on-time delivery. Every field you need must be captured somewhere by someone else.",
     prompt:
       "You're asking for a monthly report. Name every number on it — then figure out which team has to record it for you.",
   },
@@ -76,29 +76,35 @@ const ORDER_STEPS = [
   {
     title: "3. Product Lookup & Availability",
     actor: "salesrep",
-    desc: "The sales rep contacts the distributor: what product is this, and can we fulfill the quantity?",
+    desc: "The sales rep checks the product with ProImprint operations: what product is this, which supplier carries it, and can we fulfill the quantity?",
     question: "What did the sales rep have to ask for? Could the call have been avoided with the right data in a database?",
   },
   {
     title: "4. Purchase Order Created",
-    actor: "salesrep",
-    desc: "The sales rep issues a PO to the distributor for the job.",
+    actor: "distributor",
+    desc: "ProImprint operations picks the supplier that carries the product and issues the purchase order for the job.",
     question: "List everything that must appear on the PO for it to be actionable. Where did each item come from?",
   },
   {
-    title: "5. Production & Drop-Ship",
+    title: "5. Supplier Production",
     actor: "supplier",
-    desc: "The supplier produces the job and ships it directly to the customer's door — no one else touches it.",
-    question: "The supplier never talks to the customer. How does the package end up at the right address? What data makes that possible?",
+    desc: "The supplier produces the blank goods from the PO and ships them to ProImprint — they never see the customer.",
+    question: "The supplier never talks to the customer. What data must travel with the shipment so ProImprint knows whose order it is?",
   },
   {
-    title: "6. Delivery Confirmed",
+    title: "6. Printing & Shipping",
+    actor: "distributor",
+    desc: "ProImprint prints the customer's artwork on the goods and ships the finished order straight to the customer's door.",
+    question: "What does ProImprint have to know to print the right thing and get it to the right address? Where did each piece come from?",
+  },
+  {
+    title: "7. Delivery Confirmed",
     actor: "customer",
     desc: "The customer receives the package; the sales rep confirms delivery and closes the order.",
     question: "How does anyone prove the order actually arrived? What would you ask for if it didn't?",
   },
   {
-    title: "7. Reporting & Review",
+    title: "8. Reporting & Review",
     actor: "management",
     desc: "Management reviews how the order went: revenue, margin, supplier performance, on-time delivery.",
     question: "Which of your fields can only be computed from fields OTHER teams recorded? Did you catch them all?",
@@ -309,7 +315,7 @@ function TeamApp({ team, onSelect, onTeacher }) {
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-widest opacity-80">
-              ECON3120 · Proprint Value Chain {!isSupabaseConfigured && "· ⚠️ offline (no Supabase env)"}
+              ECON3120 · ProImprint Value Chain {!isSupabaseConfigured && "· ⚠️ offline (no Supabase env)"}
             </p>
             <h1 className="text-xl sm:text-2xl font-bold">
               {entity.emoji} {entity.name} Team {loading && <span className="text-sm font-normal">…</span>}
@@ -556,7 +562,7 @@ function OrderTab({ entity, team, stepIdx, setCurrentStep, fields, addField, rem
   return (
     <>
       <Card>
-        <h2 className="font-bold text-lg mb-1">🚚 Order walkthrough — purchase to drop-ship</h2>
+        <h2 className="font-bold text-lg mb-1">🚚 Order walkthrough — purchase to delivery</h2>
         <p className="text-sm text-slate-500 mb-3">
           Role-play each step aloud in your team. The app never tells you which fields you need —
           your team has to hit the wall yourselves.
@@ -741,11 +747,11 @@ function TeamSelect({ onSelect, onTeacher }) {
       <div className="max-w-2xl w-full">
         <div className="text-center mb-6">
           <p className="text-xs uppercase tracking-widest text-slate-400">ECON3120 · Database Design Unit</p>
-          <h1 className="text-2xl sm:text-3xl font-bold mt-1">Proprint.com Value Chain Builder</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mt-1">ProImprint Value Chain Builder</h1>
           <p className="text-sm text-slate-500 mt-2">
             Pick your entity team. Your database starts empty — you'll discover what data you own
             and what you need from other teams by role-playing a full order from purchase to
-            drop-ship delivery.
+            delivery.
           </p>
         </div>
         <div className="grid gap-3">

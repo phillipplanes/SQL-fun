@@ -1,8 +1,11 @@
-# ECON3120 — Proprint Value Chain Builder
+# ECON3120 — ProImprint Value Chain Builder
 
 Classroom app for the database-design unit: five entity teams (Customer, Sales Rep,
-Distributor, Supplier, Management) build out their "database" fields by role-playing a
-Proprint order from purchase to drop-ship. A live Teacher Mode board shows any two teams'
+ProImprint Operations, Supplier, Management) build out their "database" fields by
+role-playing a ProImprint order from purchase to delivery. ProImprint is the
+distributor: it sources suppliers, prints on the goods, and ships to the customer —
+suppliers carry one-to-many products and never see the customer. A live Teacher Mode
+board shows any two teams'
 owned and needed fields side by side and lets the teacher lock contracts between them.
 
 Stack: React (Vite) + Supabase (Postgres + Realtime).

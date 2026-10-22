@@ -5,7 +5,7 @@ Two live classroom apps sharing one site and one Supabase project:
 ```
 /                     Landing page — pick an activity
 /quiz/                SQL Royale — live classroom quiz (single static HTML file)
-/value-chain/         Proprint Value Chain Builder (ECON3120) — built React app
+/value-chain/         ProImprint Value Chain Builder (ECON3120) — built React app
 /econ3120-value-chain/  Source for the value-chain app (Vite + React)
 ```
 
@@ -29,11 +29,13 @@ The class answer per question is the **majority vote**. If the class averages **
 - 📚 **Three lesson modules**, selected on the teacher setup screen (`/quiz/#host`):
   Day 1 (Data to Decisions), SQL 101 Basics, and Round 2 (Relational Database Basics).
 
-### 🔗 Proprint Value Chain Builder (ECON3120)
+### 🔗 ProImprint Value Chain Builder (ECON3120)
 
 Classroom app for the database-design unit: five entity teams (Customer, Sales Rep,
-Distributor, Supplier, Management) build out their "database" fields by role-playing a
-Proprint order from purchase to drop-ship. A live Teacher Mode board (`/value-chain/#teacher`)
+ProImprint Operations, Supplier, Management) build out their "database" fields by
+role-playing a ProImprint order from purchase to delivery. ProImprint is the
+distributor — it sources suppliers, prints on the goods, and ships to the customer.
+A live Teacher Mode board (`/value-chain/#teacher`)
 shows any two teams' owned and needed fields side by side and lets the teacher lock contracts
 between them.
 
