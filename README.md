@@ -86,8 +86,12 @@ The live classroom quiz needs no tables. The other two apps do — run each sche
 Supabase dashboard (**SQL Editor**):
 
 - **SQL Practice Quiz:** run the whole of `sql-quiz/schema.sql` → creates
-  `sql_quiz_submissions` (students can only insert; only the instructor reads answers from
-  the dashboard). For a fresh start each class, run the `delete from` line at the bottom.
+  `sql_quiz_submissions` (students can only insert) plus `sql_quiz_config` and two
+  passcode-gated functions that the instructor dashboard uses to read/clear submissions
+  (direct table reads stay blocked for students). **Then set your instructor passcode:**
+  `update public.sql_quiz_config set instructor_passcode = 'your-secret-here';`
+  For a fresh start each class, run the `delete from` line at the bottom (or press
+  "Clear all submissions" on the dashboard).
 - **Value chain:** run the whole of `econ3120-value-chain/supabase/schema.sql`.
   This creates `team_fields` and `contracts`, permissive classroom policies (no login
   required), and enables realtime updates.
@@ -134,11 +138,12 @@ See `econ3120-value-chain/README.md` for full details.
    and enter the answer it returns.
 2. They press **Submit my answers** — one row lands in `sql_quiz_submissions` with their
    questions, answers, SQL, expected answers, and a computed correct flag per question.
-3. Grading is a dashboard glance: every question carries its own correct/incorrect flag, e.g.
-   `select student_name, answers, created_at from sql_quiz_submissions
-   order by student_name, created_at desc;`. For disputes, open `/sql-quiz/#teacher`,
-   enter the student's name exactly as they typed it, and compare against the correct
-   answers and reference queries.
+3. To grade, open `/sql-quiz/dashboard.html` — enter your instructor passcode and you get a
+   live table of every student (score, attempts, submission time), a per-question breakdown
+   of their answers with expected answers and correct flags, earlier attempts, a CSV export,
+   and a reset button. Auto-refresh keeps it current during class. For disputes, open
+   `/sql-quiz/#teacher`, enter the student's name exactly as they typed it, and compare
+   against the correct answers and reference queries.
 
 ## ✏️ Customizing
 
@@ -164,7 +169,9 @@ See `econ3120-value-chain/README.md` for full details.
   and is relayed over Realtime channels. Close the teacher tab and the room is gone.
 - The practice quiz stores the student's name, their questions, and their SQL answers in
   Supabase — that's the point (it's how you receive submissions). Students can only insert:
-  the anon key cannot read or modify anyone's answers, so students can't see each other's work.
+  the anon key cannot read or modify anyone's answers. The instructor dashboard reads
+  submissions through a passcode-gated function (not the anon RLS policy), so anyone with
+  the passcode — and only with the passcode — can view or clear them.
 - The value-chain app stores team field lists and teacher-locked contracts only — no
   student names. Nicknames in the live quiz are visible to the class; don't use real names if
   your school requires it.

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructor Dashboard — SQL Practice Quiz</title>
+<style>
+  :root {
+    --hpu: #330072;
+    --hpu-light: #5a2da8;
+    --hpu-glow: #8a5cd6;
+    --bg: #150726;
+    --panel: #230f3d;
+    --panel2: #2e1650;
+    --border: #3f2370;
+    --text: #ffffff;
+    --muted: #b8a5d8;
+    --accent2: #29d3a5;
+    --danger: #ff5470;
+    --warn: #ffb02e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1100px 700px at 80% -10%, #2a1148 0%, var(--bg) 55%);
+    color: var(--text);
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100%;
+  }
+  .wrap { width: 100%; max-width: 1100px; padding: 18px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .logo { font-weight: 900; font-size: 1.1rem; text-decoration: none; color: var(--text); }
+  .logo .hp { color: var(--hpu-glow); }
+  .brandline { font-size: .72rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  h1 { font-size: 1.8rem; margin-top: 22px; letter-spacing: 1px; }
+  h1 .accent { color: var(--hpu-glow); }
+  .subtitle { color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 14px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 6px; }
+  input { width: 100%; padding: 12px 14px; font-size: 1rem; border-radius: 10px; border: 1px solid var(--border); background: #180830; color: var(--text); outline: none; }
+  input:focus { border-color: var(--hpu-glow); }
+  button {
+    cursor: pointer; border: none; border-radius: 10px; font-weight: 700;
+    padding: 11px 18px; font-size: .95rem; color: #fff;
+    background: linear-gradient(135deg, var(--hpu-light), var(--hpu));
+    transition: transform .08s ease, filter .15s ease;
+  }
+  button:hover { filter: brightness(1.15); }
+  button:active { transform: scale(.97); }
+  button:disabled { filter: grayscale(.7); opacity: .5; cursor: not-allowed; }
+  button.ghost { background: var(--panel2); border: 1px solid var(--border); }
+  button.wide { width: 100%; padding: 14px; font-size: 1.05rem; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .pill { display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: .8rem; background: var(--panel2); color: var(--muted); border: 1px solid var(--border); }
+  .pill.ok { color: var(--accent2); border-color: var(--accent2); }
+  .feedback { margin-top: 12px; padding: 12px 16px; border-radius: 10px; line-height: 1.55; font-size: .92rem; border: 1px solid; }
+  .feedback.bad  { border-color: var(--danger); background: rgba(255, 84, 112, .08); color: #ff9bb0; }
+  .feedback.info { border-color: var(--border); background: var(--panel2); color: var(--muted); }
+  a { color: var(--accent2); text-decoration: none; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  table.summary { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .92rem; }
+  table.summary th { text-align: left; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.summary td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.summary tr:hover td { background: rgba(138, 92, 214, .06); }
+  .score { font-weight: 900; }
+  .score.good { color: var(--accent2); }
+  .score.mid  { color: var(--warn); }
+  .score.bad  { color: var(--danger); }
+  .minibold { font-weight: 800; }
+  .muted { color: var(--muted); }
+  .mono { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  .qcard { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 10px; background: var(--panel2); }
+  .qhead { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .qnum { font-weight: 900; color: var(--hpu-glow); }
+  .ok { color: var(--accent2); font-weight: 800; }
+  .no { color: var(--danger); font-weight: 800; }
+  .pre { background: #180830; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-family: 'Cascadia Code', Consolas, monospace; font-size: .78rem; white-space: pre-wrap; color: var(--text); }
+  .expected { color: var(--accent2); font-weight: 700; }
+  .foot { color: var(--muted); font-size: .75rem; text-align: center; margin-top: 24px; line-height: 1.7; }
+  .hidden { display: none !important; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); margin-right: 6px; }
+  .dot.live { background: var(--accent2); }
+  @media (max-width: 700px) { h1 { font-size: 1.4rem; } table.summary { font-size: .82rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="logo" href="index.html"><span class="hp">SQL</span>-FUN &nbsp;·&nbsp; Practice Quiz</a>
+    <span class="brandline">Instructor · Dashboard</span>
+  </div>
+
+  <h1>Submission <span class="accent">Dashboard</span></h1>
+  <p class="subtitle">See every student's progress and answers for the SQL practice quiz.
+    Each student appears here the moment they press <b>Submit</b> (in-progress drafts live
+    in their own browsers). If a student submitted more than once, only their latest attempt
+    counts for the score column — earlier attempts remain viewable below the table.</p>
+
+  <div class="card">
+    <label for="passcode">Instructor passcode (set in Supabase: sql_quiz_config.instructor_passcode)</label>
+    <input id="passcode" type="password" placeholder="your passcode" autocomplete="off" spellcheck="false">
+    <div class="row" style="margin-top:12px;">
+      <button id="btnLoad">Load submissions</button>
+      <button id="btnAuto" class="ghost"><span class="dot" id="autoDot"></span>Auto-refresh</button>
+      <span style="flex:1"></span>
+      <button id="btnCsv" class="ghost" disabled>Export CSV</button>
+      <button id="btnClear" class="ghost" disabled>Clear all submissions</button>
+    </div>
+    <div id="feedback" class="feedback info hidden"></div>
+  </div>
+
+  <div class="card hidden" id="summaryCard">
+    <div class="toolbar" style="justify-content:space-between;">
+      <div class="pill ok" id="countPill">—</div>
+      <span class="muted" style="font-size:.8rem;" id="lastUpdated">—</span>
+    </div>
+    <table class="summary" id="summaryTable">
+      <thead>
+        <tr><th>Student</th><th>Score</th><th>Answered</th><th>Attempts</th><th>Submitted</th><th>Receipt</th><th></th></tr>
+      </thead>
+      <tbody id="summaryBody"></tbody>
+    </table>
+    <p class="foot" style="text-align:left; margin-top:14px;" id="attemptsNote"></p>
+  </div>
+
+  <div class="card hidden" id="detailCard">
+    <div class="toolbar" style="justify-content:space-between;">
+      <h2 style="font-size:1.1rem;" id="detailName">—</h2>
+      <button id="btnCloseDetail" class="ghost">Close</button>
+    </div>
+    <div id="detailBody" style="margin-top:8px;"></div>
+  </div>
+
+  <p class="foot">
+    Submissions are read through a passcode-gated Supabase function — students can submit but cannot read
+    anyone's answers (including the expected ones, which are also not exposed to the student view).<br>
+    <a href="index.html">← back to the quiz</a> · <a href="index.html#teacher">answer key →</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+const SUPABASE_URL = "https://jzugkkhcwmshtxfcmvip.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_SUHTWIazvjUh7LBOWyCEWA_bNGyhsH7";
+const LS_PASSCODE_KEY = 'sql-quiz-dashboard-passcode';
+
+const $ = (id) => document.getElementById(id);
+let sb = null;
+let ROWS = [];        // all submissions, newest first
+let AUTO = null;      // interval handle for auto-refresh
+const AUTO_MS = 20000;
+
+function supa() {
+  if (!sb) sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return sb;
+}
+
+function msg(cls, text) {
+  const fb = $('feedback');
+  fb.className = 'feedback ' + cls;
+  fb.textContent = text;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ---- load & summarize ----
+async function load(showMsg) {
+  const pc = $('passcode').value.trim();
+  if (!pc) { msg('bad', 'Enter your instructor passcode first.'); return; }
+  try { localStorage.setItem(LS_PASSCODE_KEY, pc); } catch (e) { }
+  $('btnLoad').disabled = true;
+  $('btnLoad').textContent = 'Loading…';
+  try {
+    const { data, error } = await supa().rpc('sql_quiz_submissions_list', { p_passcode: pc });
+    if (error) throw new Error(error.message);
+    if (!data || data.ok !== true) {
+      ROWS = [];
+      msg('bad', (data && data.error) ? data.error : 'Could not read submissions.');
+      renderSummary();
+      return;
+    }
+    ROWS = data.rows || [];
+    if (showMsg !== false) msg('info', (ROWS.length === 0)
+      ? 'Connected — no submissions yet. This list fills in as students press Submit.'
+      : 'Connected — ' + ROWS.length + ' submission' + (ROWS.length === 1 ? '' : 's') + ' loaded.');
+    renderSummary();
+  } catch (e) {
+    msg('bad', 'Load failed: ' + e.message);
+  } finally {
+    $('btnLoad').disabled = false;
+    $('btnLoad').textContent = 'Load submissions';
+  }
+}
+
+function rowsForStudent(name) {
+  // rows already newest-first; group by exact name
+  return ROWS.filter(r => r.student_name === name);
+}
+
+function renderSummary() {
+  const hasRows = ROWS.length > 0;
+  $('btnCsv').disabled = !hasRows;
+  $('btnClear').disabled = !hasRows;
+  if (!hasRows) {
+    $('summaryCard').classList.add('hidden');
+    $('detailCard').classList.add('hidden');
+    return;
+  }
+  $('summaryCard').classList.remove('hidden');
+  const names = [...new Set(ROWS.map(r => r.student_name))];
+  const total = names.length;
+  const scores = names.map(n => scoreOf(rowsForStudent(n)));
+  const avg = (100 * scores.reduce((a, s) => a + s.score, 0) / (total || 1)).toFixed(0);
+  $('countPill').textContent = total + ' student' + (total === 1 ? '' : 's') + ' · class average ' + avg + '%';
+
+  const body = $('summaryBody');
+  body.replaceChildren();
+  names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())).forEach((name) => {
+    const rs = rowsForStudent(name);
+    const s = scoreOf(rs);
+    const latest = rs[0];
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="minibold">${escapeHtml(name)}</td>` +
+      `<td class="score ${s.score >= 8 ? 'good' : (s.score >= 5 ? 'mid' : 'bad')}">${s.score} / 10</td>` +
+      `<td class="mono">${s.answered} / 10</td>` +
+      `<td class="mono">${rs.length}</td>` +
+      `<td class="muted" style="white-space:nowrap;">${new Date(latest.created_at).toLocaleString()}</td>` +
+      `<td class="mono muted">${escapeHtml(latest.receipt || '')}</td>` +
+      `<td style="white-space:nowrap;">
+         <button class="ghost" data-view="${escapeHtml(name)}">View answers</button>
+       </td>`;
+    body.appendChild(tr);
+  });
+  // wire the view buttons
+  body.querySelectorAll('button[data-view]').forEach(b => {
+    b.addEventListener('click', () => showDetail(b.getAttribute('data-view')));
+  });
+  $('lastUpdated').textContent = 'updated ' + new Date().toLocaleTimeString();
+}
+
+function scoreOf(/** newest-first */ rows) {
+  const latest = rows[0];
+  const answers = latest.answers || [];
+  return {
+    score: answers.filter(a => a.correct === true).length,
+    answered: answers.filter(a => String(a.answer || '').trim().length > 0).length,
+  };
+}
+
+// ---- detail view ----
+function showDetail(name) {
+  const rows = rowsForStudent(name);
+  if (!rows.length) return;
+  const latest = rows[0];
+  $('detailName').textContent = name + ' — latest attempt';
+  const body = $('detailBody');
+  body.replaceChildren();
+
+  const qByNum = {};
+  (latest.questions || []).forEach(q => { qByNum[q.num] = q; });
+  const answers = latest.answers || [];
+  for (let i = 1; i <= 10; i++) {
+    const a = answers.find(x => x.num === i) || { num: i, answer: '', sql: '', expected: '', correct: false };
+    const q = qByNum[i] || { num: i, skill: '', prompt: '(question text not stored in this row)' };
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      `<div class="qhead">
+         <span class="qnum">Q${i}</span>
+         <span class="muted" style="font-size:.78rem; text-transform:uppercase; letter-spacing:1px;">${escapeHtml(q.skill || '')}</span>
+         <span class="${a.correct ? 'ok' : 'no'}">${a.correct ? '✓ correct' : (String(a.answer || '').trim() ? '✗ incorrect' : '— not answered')}</span>
+       </div>` +
+      (q.prompt ? `<div style="margin-top:8px; font-size:.88rem; line-height:1.5;">${escapeHtml(q.prompt)}</div>` : '') +
+      `<div style="margin-top:8px; font-size:.88rem;">Answer given: <b>${escapeHtml(a.answer || '—')}</b></div>` +
+      `<div style="margin-top:4px; font-size:.88rem;">Expected: <span class="expected">${escapeHtml(a.expected || '')}</span></div>` +
+      (a.sql ? `<div class="pre">${escapeHtml(a.sql)}</div>`
+             : `<div class="muted" style="margin-top:6px; font-size:.8rem;">(no SQL submitted)</div>`);
+    body.appendChild(card);
+  }
+
+  // earlier attempts (compact list)
+  const earlier = rows.slice(1);
+  if (earlier.length) {
+    const head = document.createElement('div');
+    head.className = 'muted';
+    head.style.cssText = 'margin-top:16px; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;';
+    head.textContent = 'Earlier attempts (not counted in the score column)';
+    body.appendChild(head);
+    earlier.forEach((r, idx) => {
+      const a = r.answers || [];
+      const sc = a.filter(x => x.correct === true).length;
+      const el = document.createElement('div');
+      el.className = 'qcard';
+      el.innerHTML =
+        `<div class="qhead">
+           <span class="qnum">#${earlier.length - idx}</span>
+           <span>${new Date(r.created_at).toLocaleString()}</span>
+           <span class="score ${sc >= 8 ? 'good' : (sc >= 5 ? 'mid' : 'bad')}">${sc} / 10</span>
+           <span class="mono muted">${escapeHtml(r.receipt || '')}</span>
+           <span style="flex:1"></span>
+           <button class="ghost" data-view-attempt="${escapeHtml(r.id + '')}">View</button>
+         </div>` +
+        `<div id="attempt-${r.id}" class="hidden" style="margin-top:10px;"></div>`;
+      body.appendChild(el);
+    });
+    body.querySelectorAll('button[data-view-attempt]').forEach(b => {
+      b.addEventListener('click', () => {
+        const panel = document.getElementById('attempt-' + b.getAttribute('data-view-attempt'));
+        if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+        const r = earlier.find(x => String(x.id) === b.getAttribute('data-view-attempt'));
+        const qn = {}; (r.questions || []).forEach(q => { qn[q.num] = q; });
+        const ans = r.answers || [];
+        let inner = '';
+        for (let i = 1; i <= 10; i++) {
+          const a = ans.find(x => x.num === i) || { num: i, answer: '', sql: '', expected: '', correct: false };
+          const q = qn[i] || { skill: '' };
+          inner +=
+            `<div class="qhead" style="margin-top:6px;">
+               <span class="qnum">Q${i}</span>
+               <span class="${a.correct ? 'ok' : 'no'}">${a.correct ? '✓' : '✗'}</span>
+               <span>${escapeHtml(a.answer || '—')}</span>
+               <span class="muted">expected: <span class="expected">${escapeHtml(a.expected || '')}</span></span>
+             </div>`;
+        }
+        panel.innerHTML = inner;
+        panel.classList.remove('hidden');
+      });
+    });
+  }
+  $('attemptsNote').textContent = '';
+
+  $('detailCard').classList.remove('hidden');
+  window.scrollTo({ top: $('detailCard').offsetTop - 10 });
+}
+$('btnCloseDetail').addEventListener('click', () => $('detailCard').classList.add('hidden'));
+
+// ---- export / clear ----
+function exportCsv() {
+  const names = [...new Set(ROWS.map(r => r.student_name))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  const header = ['student', 'score', 'answered', 'attempts', 'submitted', 'receipt',
+    ...Array.from({ length: 10 }, (_, i) => 'q' + (i + 1))];
+  const lines = [header.join(',')];
+  for (const n of names) {
+    const rs = rowsForStudent(n);
+    const s = scoreOf(rs);
+    const latest = rs[0];
+    const answers = latest.answers || [];
+    const flags = Array.from({ length: 10 }, (_, i) => {
+      const a = answers.find(x => x.num === i + 1);
+      return a && a.correct === true ? '1' : '0';
+    });
+    const cells = [n, s.score, s.answered, rs.length, new Date(latest.created_at).toISOString(), latest.receipt || '', ...flags];
+    lines.push(cells.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(','));
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'sql-quiz-submissions-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+async function clearAll() {
+  const pc = $('passcode').value.trim();
+  if (!pc) { msg('bad', 'Enter your instructor passcode first.'); return; }
+  if (!confirm('Delete ALL quiz submissions? This cannot be undone (do it between classes, not during one).')) return;
+  if (!confirm('Really delete ' + ROWS.length + ' submission(s) for every student?')) return;
+  try {
+    const { data, error } = await supa().rpc('sql_quiz_submissions_clear', { p_passcode: pc });
+    if (error) throw new Error(error.message);
+    if (!data || data.ok !== true) throw new Error((data && data.error) || 'clear failed');
+    msg('info', 'Deleted ' + (data.deleted || 0) + ' submission(s).');
+    ROWS = [];
+    renderSummary();
+  } catch (e) {
+    msg('bad', 'Clear failed: ' + e.message);
+  }
+}
+
+// ---- wiring ----
+$('btnLoad').addEventListener('click', () => load(true));
+$('btnCsv').addEventListener('click', exportCsv);
+$('btnClear').addEventListener('click', clearAll);
+$('btnAuto').addEventListener('click', () => {
+  if (AUTO) {
+    clearInterval(AUTO);
+    AUTO = null;
+    $('autoDot').classList.remove('live');
+    $('btnAuto').classList.add('ghost');
+  } else {
+    AUTO = setInterval(() => load(false), AUTO_MS);
+    $('autoDot').classList.add('live');
+  }
+});
+$('passcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') load(true); });
+
+// restore remembered passcode and auto-load
+try {
+  const saved = localStorage.getItem(LS_PASSCODE_KEY);
+  if (saved) { $('passcode').value = saved; load(true); }
+} catch (e) { /* ignore */ }
+</script>
+</body>
+</html>
