@@ -1,6 +1,22 @@
 -- ============================================================
--- Proprint Order System — SQLite Schema + Dummy Data
--- (source database for the SQL Practice Quiz)
+-- PROPRINT ORDER SYSTEM — the database for the SQL Practice Quiz
+-- ============================================================
+-- This is the schema and data you run your quiz queries against:
+-- every question about customers, orders, products, suppliers and
+-- shipments is answered from these tables. Nothing is hidden — all
+-- 8 tables' full contents are below.
+--
+-- HOW TO USE IT
+--   Option 1 — DB Browser for SQLite (recommended):
+--     1. Open DB Browser and go to "Execute SQL".
+--     2. Open this file, press the "play/run" button to create the tables,
+--        then write your quiz queries in the same window.
+--   Option 2 — sqlite3 command line:
+--     sqlite3 proprint.db < this_file.sql
+--     sqlite3 proprint.db
+--
+-- Re-running the whole file is safe: it drops and recreates everything.
+--
 -- Tables: customers, employees, orders, order_products,
 --         shipments, products, product_categories, suppliers
 -- ============================================================
