@@ -113,48 +113,30 @@
   <!-- ============ START SCREEN ============ -->
   <div id="screen-start">
     <h1>SQL <span class="accent">Practice Quiz</span></h1>
-    <p class="subtitle">10 questions on the Proprint Order System database — from a basic
-      <code>SELECT</code> to a join with <code>GROUP BY</code>. Everyone gets the same kinds of
-      questions, but the details are generated from <b>your name</b>, so your quiz is slightly
-      different from your neighbor's.</p>
+    <p class="subtitle">10 questions on the Proprint Order System — enter your name to begin.</p>
 
     <div class="card">
-      <label for="nameInput">Your full name (as your instructor knows you)</label>
+      <label for="nameInput">Your name</label>
       <input id="nameInput" placeholder="e.g. Jordan Smith" autocomplete="name" spellcheck="false">
-      <label for="nameConfirm">Confirm your name (type it again)</label>
-      <input id="nameConfirm" placeholder="same name again" spellcheck="false">
       <div id="nameError" class="feedback bad hidden" style="margin-top:12px;"></div>
       <button class="big" id="btnStart">Start my quiz →</button>
-      <p class="note">Your name <b>seeds</b> the quiz: the same name always produces the same
-        questions, so type it carefully — your instructor sees your name with your answers.
-        If two classmates share a name, add your middle initial to make yours different.</p>
+      <p class="note" style="text-align:center;">Your name generates your questions — same name, same quiz.</p>
     </div>
 
-    <div class="card">
-      <div class="skill" style="margin-bottom:4px;">How it works</div>
-      <p style="font-size:.95rem; line-height:1.7; color:var(--muted);">
-        Each question is a business question you answer with SQL. Download
-        <a href="proprint.sql" target="_blank">proprint.sql</a>, load it into your SQL client
-        (e.g., DB Browser for SQLite), write a query, and type the <b>answer your query returns</b>
-        into the answer box. You can also paste the SQL you used — the instructor likes to see
-        both. Answers are checked automatically when you submit, but your best move is to make
-        sure your query really runs before you commit to an answer. Use the schema reference at
-        the bottom of the quiz screen, and take a screenshot of your receipt when you're done.</p>
-      <div style="margin-top:18px;">
-        <button class="ghost" id="btnTeacherToggle">Instructor — answer key 🔑</button>
-      </div>
-      <div id="teacherPanel" class="hidden" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-        <div class="skill" style="margin-bottom:4px;">Instructor: regenerate any student's quiz with answers</div>
-        <p class="note">Enter a student's name exactly as they typed it to see their questions, the
-          correct answer for each, and one query that produces it. Nothing is written to the database.</p>
+    <div id="teacherPanel" class="hidden">
+      <div class="card">
+        <div class="skill" style="margin-bottom:4px;">Instructor: regenerate any student's questions with answers</div>
         <label for="teacherName">Student's name</label>
         <input id="teacherName" placeholder="e.g. Jordan Smith" spellcheck="false">
         <div class="row" style="margin-top:12px;">
           <button id="btnTeacherGo">Show questions + key</button>
-          <a class="pill" href="dashboard.html" style="color:var(--accent2);">Instructor dashboard →</a>
         </div>
       </div>
     </div>
+
+    <p class="foot" style="color:var(--muted); font-size:.75rem; text-align:center; margin-top:26px;">
+      <a href="#" id="teacherToggleLink">Instructor — answer key</a> ·
+      <a href="dashboard.html">Instructor dashboard</a></p>
 
     <div id="teacherOut" class="hidden">
       <h1 style="font-size:1.4rem; margin-top:26px;">Answer key — <span class="accent" id="teacherWho"></span></h1>
@@ -1030,10 +1012,8 @@ function showTeacher(name) {
 /* ---------- event wiring ---------- */
 $('btnStart').addEventListener('click', () => {
   const n1 = $('nameInput').value.trim().replace(/\s+/g, ' ');
-  const n2 = $('nameConfirm').value.trim().replace(/\s+/g, ' ');
   const err = $('nameError');
-  if (n1.length < 2) { err.textContent = 'Please type your full name (at least 2 characters).'; err.classList.remove('hidden'); return; }
-  if (n1.toLowerCase() !== n2.toLowerCase()) { err.textContent = 'The two names do not match — type your name again to confirm.'; err.classList.remove('hidden'); return; }
+  if (n1.length < 2) { err.textContent = 'Please type your name (at least 2 characters).'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
 
   const saved = loadState();
@@ -1074,16 +1054,22 @@ $('btnRestart').addEventListener('click', () => {
   state = null;
   $('screen-final').classList.add('hidden');
   $('screen-start').classList.remove('hidden');
-  $('nameInput').value = ''; $('nameConfirm').value = '';
+  $('nameInput').value = '';
 });
-$('btnTeacherToggle').addEventListener('click', () => {
+$('teacherToggleLink').addEventListener('click', (e) => {
+  e.preventDefault();
   $('teacherPanel').classList.toggle('hidden');
+  if (!$('teacherPanel').classList.contains('hidden')) {
+    $('teacherName').focus();
+    window.scrollTo({ top: $('teacherPanel').offsetTop - 10 });
+  }
 });
 $('btnTeacherGo').addEventListener('click', () => {
   const n = $('teacherName').value.trim().replace(/\s+/g, ' ');
   if (n.length < 2) return;
   showTeacher(n);
 });
+$('nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnStart').click(); });
 if (location.hash.toLowerCase() === '#teacher') $('teacherPanel').classList.remove('hidden');
 
 /* warn about unsent draft when leaving mid-quiz */
