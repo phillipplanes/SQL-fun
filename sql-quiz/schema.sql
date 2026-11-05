@@ -94,7 +94,8 @@ begin
   end if;
 
   select count(*) into n from public.sql_quiz_submissions;
-  delete from public.sql_quiz_submissions;
+  -- "WHERE true" satisfies pg_safeupdate ("DELETE requires a WHERE clause")
+  delete from public.sql_quiz_submissions where true;
 
   return jsonb_build_object('ok', true, 'deleted', n);
 end;
@@ -109,4 +110,4 @@ grant execute on function public.sql_quiz_submissions_clear(text) to anon, authe
 
 -- Before each class, wipe the slate — either press "Clear all submissions" on
 -- the dashboard, or:
--- delete from public.sql_quiz_submissions;
+-- delete from public.sql_quiz_submissions where true;
