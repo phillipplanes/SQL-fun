@@ -110,6 +110,22 @@
     <div id="feedback" class="feedback info hidden"></div>
   </div>
 
+  <div class="card hidden" id="keyCard">
+    <div class="toolbar" style="justify-content:space-between;">
+      <h2 style="font-size:1.1rem;">Answer key — view any student's questions</h2>
+    </div>
+    <p class="muted" style="font-size:.85rem; margin-top:8px; line-height:1.5;">
+      Enter a student's name exactly as they typed it to regenerate their quiz with the correct
+      answer for each question and one query that returns it. (The questions come from the name —
+      nothing is read from the database.)</p>
+    <div class="row" style="margin-top:12px;">
+      <input id="keyName" placeholder="Student's name" spellcheck="false" autocomplete="off"
+             style="flex:1; min-width:220px;">
+      <button id="btnKeyGo">Show questions + key</button>
+    </div>
+    <div id="keyOut" style="margin-top:4px;"></div>
+  </div>
+
   <div class="card hidden" id="summaryCard">
     <div class="toolbar" style="justify-content:space-between;">
       <div class="pill ok" id="countPill">—</div>
@@ -135,10 +151,11 @@
   <p class="foot">
     Submissions are read through a passcode-gated Supabase function — students can submit but cannot read
     anyone's answers (including the expected ones, which are also not exposed to the student view).<br>
-    <a href="index.html">← back to the quiz</a> · <a href="index.html#teacher">answer key →</a></p>
+    <a href="index.html">← back to the quiz</a></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="quiz-engine.js"></script>
 <script>
 'use strict';
 
@@ -184,6 +201,7 @@ async function load(showMsg) {
       return;
     }
     ROWS = data.rows || [];
+    $('keyCard').classList.remove('hidden'); // instructor features unlock after a valid passcode
     if (showMsg !== false) msg('info', (ROWS.length === 0)
       ? 'Connected — no submissions yet. This list fills in as students press Submit.'
       : 'Connected — ' + ROWS.length + ' submission' + (ROWS.length === 1 ? '' : 's') + ' loaded.');
@@ -338,6 +356,36 @@ function showDetail(name) {
   window.scrollTo({ top: $('detailCard').offsetTop - 10 });
 }
 $('btnCloseDetail').addEventListener('click', () => $('detailCard').classList.add('hidden'));
+
+// ---- answer key ----
+function showKey(name) {
+  const qs = buildQuestions(name);
+  const out = $('keyOut');
+  out.replaceChildren();
+  const head = document.createElement('div');
+  head.className = 'minibold';
+  head.style.cssText = 'margin-top:8px;';
+  head.textContent = 'Quiz generated for ' + name + ':';
+  out.appendChild(head);
+  qs.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      `<div class="qhead">
+         <span class="qnum">Q${i + 1}</span>
+         <span class="muted" style="font-size:.78rem; text-transform:uppercase; letter-spacing:1px;">${escapeHtml(q.skill)}</span>
+       </div>` +
+      `<div style="margin-top:8px; font-size:.9rem; line-height:1.55;">${q.prompt}</div>` +
+      `<div style="margin-top:8px; font-size:.9rem;">Correct answer: <span class="expected">${escapeHtml(q.expected.map(String).join(', '))}</span></div>` +
+      `<div class="pre">${escapeHtml(q.ref)}</div>`;
+    out.appendChild(card);
+  });
+}
+$('btnKeyGo').addEventListener('click', () => {
+  const n = $('keyName').value.trim().replace(/\s+/g, ' ');
+  if (n.length >= 2) showKey(n);
+});
+$('keyName').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnKeyGo').click(); });
 
 // ---- export / clear ----
 function exportCsv() {

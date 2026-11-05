@@ -60,11 +60,15 @@ thresholds to look up. Same name always regenerates the same quiz (it's the seed
   name, their questions, their answers, the SQL, the expected answer, and a computed
   **correct/incorrect flag per question** — grading is a glance at the dashboard. Checks are
   tolerant of formatting ($, thousands commas, case, order of values) but not of wrong values.
-- **Answer key:** open `/sql-quiz/#teacher`, type a student's name exactly as they entered it,
-  and see their questions with the correct answer and a reference query for each.
-- Files: `sql-quiz/index.html` (app), `sql-quiz/proprint.sql` (schema + dummy data — students
-  load this into a SQLite client), `sql-quiz/schema.sql` (Supabase table). Edit the question
-  builders in `index.html` to change what the class is asked; expected answers live in the
+- **Answer key:** open `/sql-quiz/dashboard.html` (bookmark it — it's not linked from any
+  student-facing page), enter your instructor passcode, and use the "Answer key" card: type a
+  student's name exactly as they entered it to see their questions with the correct answer and
+  a reference query for each.
+- Files: `sql-quiz/index.html` (student app), `sql-quiz/dashboard.html` (instructor app —
+  progress/answers plus answer key), `sql-quiz/quiz-engine.js` (shared question engine),
+  `sql-quiz/proprint.sql` (schema + dummy data — students load this into a SQLite client),
+  `sql-quiz/schema.sql` (Supabase table + passcode-gated functions). Edit the question builders
+  in `quiz-engine.js` to change what the class is asked; expected answers live in the
   `DATA` object (verified against the data by the test harness pattern in git history).
 
 ---
@@ -138,12 +142,11 @@ See `econ3120-value-chain/README.md` for full details.
    and enter the answer it returns.
 2. They press **Submit my answers** — one row lands in `sql_quiz_submissions` with their
    questions, answers, SQL, expected answers, and a computed correct flag per question.
-3. To grade, open `/sql-quiz/dashboard.html` — enter your instructor passcode and you get a
-   live table of every student (score, attempts, submission time), a per-question breakdown
-   of their answers with expected answers and correct flags, earlier attempts, a CSV export,
-   and a reset button. Auto-refresh keeps it current during class. For disputes, open
-   `/sql-quiz/#teacher`, enter the student's name exactly as they typed it, and compare
-   against the correct answers and reference queries.
+3. To grade, open `/sql-quiz/dashboard.html` (bookmark it — no student-facing page links to
+   it) — enter your instructor passcode for a live table of every student (score, attempts,
+   submission time), a per-question breakdown of their answers with expected answers and
+   correct flags, earlier attempts, a CSV export, a reset button, and the answer-key card
+   for disputes (enter the student's name exactly as they typed it).
 
 ## ✏️ Customizing
 
