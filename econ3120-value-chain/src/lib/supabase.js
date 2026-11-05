@@ -6,8 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 //
 // Defaults point at the shared project. Vite env vars (VITE_SUPABASE_URL /
 // VITE_SUPABASE_ANON_KEY) override them if you ever split onto a new project.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://bnncmkwzuduimpkjniur.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_iFZB4kApTYnkavLk3XPQVw_paYTcHl5";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://jzugkkhcwmshtxfcmvip.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_SUHTWIazvjUh7LBOWyCEWA_bNGyhsH7";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
