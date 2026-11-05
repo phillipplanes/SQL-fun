@@ -1,10 +1,11 @@
 # 🎮 SQL-fun — Classroom Tools
 
-Two live classroom apps sharing one site and one Supabase project:
+Three live classroom apps sharing one site (two share a Supabase project):
 
 ```
 /                     Landing page — pick an activity
 /quiz/                SQL Royale — live classroom quiz (single static HTML file)
+/sql-quiz/            SQL Practice Quiz — name-seeded, auto-graded solo quiz (static HTML + proprint.sql)
 /value-chain/         ProImprint Value Chain Builder (ECON3120) — built React app
 /econ3120-value-chain/  Source for the value-chain app (Vite + React)
 ```
@@ -43,27 +44,51 @@ between them.
 - Uses the same Supabase project as the quiz — two tables (`team_fields`, `contracts`) that
   the quiz never touches, so the two apps can run at the same time.
 
+### 📝 SQL Practice Quiz — Proprint Order System
+
+Take-home / lab-style solo quiz. A student enters their name, then answers **10 questions of
+identical types for the whole class** — basic SELECT → WHERE → ORDER BY + LIMIT → LIKE/NULL →
+aggregates → GROUP BY → JOIN → JOIN + GROUP BY → multi-join + GROUP BY — but the **details are
+seeded from the student's name**, so each person gets different cities, statuses, thresholds,
+years and suppliers to look up. Same name always regenerates the same quiz (it's the seed).
+
+- The app only **presents the questions and collects the student's SQL answers** (one text answer
+  per question). Nothing is executed or auto-graded in the browser — the instructor grades.
+- Pressing **Submit** inserts one row in the `sql_quiz_submissions` Supabase table (name, the
+  exact questions that student saw, their answers, a receipt code). Query it from the Supabase
+  dashboard after class: newest row per name wins if a student submitted twice.
+- **Answer key:** open `/sql-quiz/#teacher`, type a student's name exactly as they entered it,
+  and see their questions with one correct solution for each.
+- Files: `sql-quiz/index.html` (app), `sql-quiz/proprint.sql` (schema + dummy data, shown to
+  students as a reference and used for grading), `sql-quiz/schema.sql` (Supabase table).
+  Edit the question templates in `index.html` to change what the class is asked.
+
 ---
 
 ## 🚀 Setup
 
-### 1. One Supabase project for both apps
+### 1. One Supabase project for all three apps
 
-The Supabase URL + anon key are already baked into both apps. If you ever point them at a
+The Supabase URL + anon key are already baked into all three apps. If you ever point them at a
 new project:
 
-- **Quiz:** edit `SUPABASE_URL` / `SUPABASE_ANON_KEY` near the top of `quiz/index.html`.
+- **Quizzes:** edit `SUPABASE_URL` / `SUPABASE_ANON_KEY` near the top of `quiz/index.html` and `sql-quiz/index.html`.
 - **Value chain:** edit the defaults in `econ3120-value-chain/src/lib/supabase.js`, then
   rebuild (see below).
 
-### 2. Create the value-chain tables (one time)
+### 2. Create the database tables (one time)
 
-The quiz needs no tables. The value-chain app does. In the Supabase dashboard
-(**SQL Editor**), run the whole of `econ3120-value-chain/supabase/schema.sql`.
-This creates `team_fields` and `contracts`, permissive classroom policies (no login
-required), and enables realtime updates.
+The live classroom quiz needs no tables. The other two apps do — run each schema once in the
+Supabase dashboard (**SQL Editor**):
 
-For a fresh start each class, run the two `delete from` lines at the bottom of schema.sql.
+- **SQL Practice Quiz:** run the whole of `sql-quiz/schema.sql` → creates
+  `sql_quiz_submissions` (students can only insert; only the instructor reads answers from
+  the dashboard). For a fresh start each class, run the `delete from` line at the bottom.
+- **Value chain:** run the whole of `econ3120-value-chain/supabase/schema.sql`.
+  This creates `team_fields` and `contracts`, permissive classroom policies (no login
+  required), and enables realtime updates.
+
+  For a fresh start each class, run the two `delete from` lines at the bottom of schema.sql.
 
 ### 3. Deploy
 
@@ -97,11 +122,27 @@ deployed URL, so the site must be online (not `file://`) for phones to join.
 
 See `econ3120-value-chain/README.md` for full details.
 
+## 📝 Running the SQL practice quiz
+
+1. Students open `/sql-quiz/`, type their name twice, and get their 10 seeded questions
+   (answerable in one sitting or across sessions — drafts are saved in their browser).
+2. They write one SQL statement per question and press **Submit my answers** — one row lands
+   in `sql_quiz_submissions` with their name, their exact questions, and their answers.
+   Keep a copy (screenshot) of the receipt if you ask for one.
+3. To grade, open `/sql-quiz/#teacher` and enter each student's name exactly as they typed it:
+   you get their questions with a reference solution. Or query the table directly, e.g.
+   `select student_name, answers, receipt, created_at from sql_quiz_submissions
+   order by student_name, created_at desc;` — run each answer against `sql-quiz/proprint.sql`
+   in your own SQLite client to see what it returns.
+
 ## ✏️ Customizing
 
-- **Quiz questions:** edit the `MODULES` object at the top of `quiz/index.html`. Each key
+- **Live quiz questions:** edit the `MODULES` object at the top of `quiz/index.html`. Each key
   becomes a module in the teacher's dropdown. Question shape:
   `{ q, options: [4], answer: 0-3, explain, code? }`.
+- **Practice quiz questions:** edit the `q1…q10` builder functions in `sql-quiz/index.html`.
+  Each builder picks its seeded details from the candidate lists right above them (the lists
+  are pre-checked against the dummy data — every choice yields a non-empty, sensible result).
 - **Value-chain app:** edit `econ3120-value-chain/src/`, then rebuild and refresh the
   committed output:
 
@@ -114,8 +155,11 @@ See `econ3120-value-chain/README.md` for full details.
 
 ## 🔒 Privacy notes
 
-- The quiz writes nothing to the database — game state lives only in the teacher's browser
+- The live quiz writes nothing to the database — game state lives only in the teacher's browser
   and is relayed over Realtime channels. Close the teacher tab and the room is gone.
+- The practice quiz stores the student's name, their questions, and their SQL answers in
+  Supabase — that's the point (it's how you receive submissions). Students can only insert:
+  the anon key cannot read or modify anyone's answers, so students can't see each other's work.
 - The value-chain app stores team field lists and teacher-locked contracts only — no
-  student names. Nicknames in the quiz are visible to the class; don't use real names if
+  student names. Nicknames in the live quiz are visible to the class; don't use real names if
   your school requires it.
