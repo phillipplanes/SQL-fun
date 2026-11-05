@@ -45,8 +45,9 @@
     width: 100%; padding: 12px 14px; font-size: 1rem; border-radius: 10px;
     border: 1px solid var(--border); background: #180830; color: var(--text); outline: none;
   }
-  textarea { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; min-height: 150px; resize: vertical; line-height: 1.5; }
+  textarea { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; min-height: 110px; resize: vertical; line-height: 1.5; }
   input:focus, textarea:focus { border-color: var(--hpu-glow); }
+  input#answerInput { font-size: 1.08rem; font-weight: 700; }
   button {
     cursor: pointer; border: none; border-radius: 10px; font-weight: 700;
     padding: 12px 20px; font-size: 1rem; color: #fff;
@@ -79,16 +80,17 @@
   }
   a { color: var(--accent2); text-decoration: none; }
   .note { color: var(--muted); font-size: .88rem; line-height: 1.6; margin-top: 12px; }
+  .ask { color: var(--accent2); font-size: 1rem; margin-top: 14px; padding: 10px 14px; border-left: 3px solid var(--accent2); background: rgba(41, 211, 165, .07); border-radius: 0 8px 8px 0; }
   .feedback { margin-top: 14px; padding: 14px 16px; border-radius: 10px; line-height: 1.55; font-size: .95rem; border: 1px solid; }
   .feedback.good { border-color: var(--accent2); background: rgba(41, 211, 165, .08); color: var(--accent2); }
   .feedback.bad  { border-color: var(--danger); background: rgba(255, 84, 112, .08); color: #ff9bb0; }
   .feedback.info { border-color: var(--border); background: var(--panel2); color: var(--muted); }
-  .sol, .keyref {
+  .keyref {
     margin-top: 10px; padding: 12px; background: #180830; border-radius: 8px;
     font-family: 'Cascadia Code', Consolas, monospace; font-size: .85rem; color: #fff;
     white-space: pre-wrap; border: 1px solid var(--border);
   }
-  .sol { color: var(--accent2); }
+  .expected { color: var(--accent2); font-weight: 800; }
   details { margin-top: 10px; }
   details summary { cursor: pointer; color: var(--accent2); font-weight: 700; padding: 8px 0; }
   .schema {
@@ -125,25 +127,26 @@
       <button class="big" id="btnStart">Start my quiz →</button>
       <p class="note">Your name <b>seeds</b> the quiz: the same name always produces the same
         questions, so type it carefully — your instructor sees your name with your answers.
-        You'll write one SQL statement per question; when you Submit, your answers go to your
-        instructor for grading. Your draft is saved in this browser until you submit.
         If two classmates share a name, add your middle initial to make yours different.</p>
     </div>
 
     <div class="card">
       <div class="skill" style="margin-bottom:4px;">How it works</div>
       <p style="font-size:.95rem; line-height:1.7; color:var(--muted);">
-        Each question shows a business question about the Proprint database and asks for the SQL
-        you'd write to answer it. Work through them in order (or skip around and come back — the
-        numbered buttons track which questions you've answered). Use the schema reference at the
-        bottom of the quiz screen to see the tables and columns. Press <b>Submit my answers</b>
-        when you're done, and take a screenshot of your completion receipt.</p>
+        Each question is a business question you answer with SQL. Download
+        <a href="proprint.sql" target="_blank">proprint.sql</a>, load it into your SQL client
+        (e.g., DB Browser for SQLite), write a query, and type the <b>answer your query returns</b>
+        into the answer box. You can also paste the SQL you used — the instructor likes to see
+        both. Answers are checked automatically when you submit, but your best move is to make
+        sure your query really runs before you commit to an answer. Use the schema reference at
+        the bottom of the quiz screen, and take a screenshot of your receipt when you're done.</p>
       <div style="margin-top:18px;">
         <button class="ghost" id="btnTeacherToggle">Instructor — answer key 🔑</button>
       </div>
       <div id="teacherPanel" class="hidden" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-        <div class="skill" style="margin-bottom:4px;">Instructor: regenerate any student's quiz with solutions</div>
-        <p class="note">Enter a student's name exactly as they typed it to see their questions and one possible solution for each. Nothing is written to the database.</p>
+        <div class="skill" style="margin-bottom:4px;">Instructor: regenerate any student's quiz with answers</div>
+        <p class="note">Enter a student's name exactly as they typed it to see their questions, the
+          correct answer for each, and one query that produces it. Nothing is written to the database.</p>
         <label for="teacherName">Student's name</label>
         <input id="teacherName" placeholder="e.g. Jordan Smith" spellcheck="false">
         <div class="row" style="margin-top:12px;">
@@ -154,7 +157,7 @@
 
     <div id="teacherOut" class="hidden">
       <h1 style="font-size:1.4rem; margin-top:26px;">Answer key — <span class="accent" id="teacherWho"></span></h1>
-      <p class="note" style="margin-top:6px;">These are the questions generated from this name, with one correct way to write each answer (equivalent SQL is fine).</p>
+      <p class="note" style="margin-top:6px;">These are the questions generated from this name, each with the correct answer and one query that returns it.</p>
       <div id="teacherList"></div>
     </div>
   </div>
@@ -177,10 +180,13 @@
       <div class="skill" id="qSkill"></div>
       <div class="prompt" id="qPrompt"></div>
       <div class="note" id="qNote"></div>
+      <div class="ask" id="qAsk"></div>
     </div>
 
     <div class="card">
-      <label for="sqlInput">Your SQL answer</label>
+      <label for="answerInput">Your answer</label>
+      <input id="answerInput" spellcheck="false" autocomplete="off" placeholder="">
+      <label for="sqlInput">The SQL you used (optional, but appreciated)</label>
       <textarea id="sqlInput" spellcheck="false" placeholder="SELECT ... FROM ..."></textarea>
       <div class="row" style="margin-top:12px;">
         <button id="btnPrev" class="ghost">← Question 1</button>
@@ -203,22 +209,23 @@
         <div class="schema" id="schemaBox">Loading schema…</div>
       </details>
       <details>
-        <summary>Open the full data file (proprint.sql)</summary>
-        <p class="note">The rows in every table are in <a href="proprint.sql" target="_blank">proprint.sql</a> —
-          open it in a new tab if you want to see the actual values.</p>
+        <summary>Get the data file (proprint.sql)</summary>
+        <p class="note">Load <a href="proprint.sql" target="_blank">proprint.sql</a> into your SQL
+          client to run your queries — it contains every table and every row of the Proprint
+          database, exactly as shown in the schema above.</p>
       </details>
     </div>
 
     <p class="foot" style="color:var(--muted); font-size:.75rem; text-align:center; margin-top:26px;">
       Proprint Order System · quiz generated for <span id="footName"></span> ·
-      answers are submitted to your instructor when you press Submit.</p>
+      answers and SQL are submitted to your instructor when you press Submit.</p>
   </div>
 
   <!-- ============ DONE SCREEN ============ -->
   <div id="screen-final" class="hidden">
     <h1>Answers <span class="accent">Submitted</span></h1>
     <div class="card">
-      <div class="finalscore" style="font-size:2.2rem;">✓</div>
+      <div class="finalscore" id="finalScore">—</div>
       <p class="subtitle" style="text-align:center;">
         Thanks, <b id="finalName"></b> — your <b><span id="finalAnswered">0</span> of 10</b> answers were sent to your instructor.</p>
       <p class="note" style="text-align:center;">
@@ -272,413 +279,511 @@ function makeRng(name) {
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 
 /* ============================================================
- * 2. Question templates — same skills for everyone, seeded details
+ * 2. Question data + templates — same skills for everyone, seeded details
+ *    Every expected answer below was verified against proprint.sql.
  * ============================================================ */
 
-const CATS = [
-  { id: 1, name: 'Business Cards' },
-  { id: 2, name: 'Marketing Flyers' },
-  { id: 3, name: 'Banners & Signs' },
-  { id: 4, name: 'Labels & Stickers' },
-  { id: 5, name: 'Promotional Apparel' },
-  { id: 6, name: 'Stationery' },
-  { id: 7, name: 'Packaging' },
-];
-const SUPS = [
-  { id: 1, name: 'BigPress Printing Co.' },
-  { id: 2, name: 'BannerWorld Wholesale' },
-  { id: 3, name: 'SignCraft Distributors' },
-  { id: 4, name: 'StickerSource Inc.' },
-  { id: 5, name: 'Heritage Press Works' },
-  { id: 7, name: 'Cascade Digital Print' },
-];
-// customer cities with 3+ customers (verified against the data)
-const CITIES_3PLUS = ['Austin', 'Miami', 'Minneapolis', 'Milwaukee'];
-// cities with 3+ orders placed by customers living there (verified)
-const ORDER_CITIES = ['Kansas City', 'Denver', 'Miami', 'Minneapolis', 'Portland', 'Chicago', 'Charlotte', 'Boise'];
-const STATUSES_SMALL = ['pending', 'in_production', 'shipped'];
-const STATUSES_ALL = ['pending', 'in_production', 'shipped', 'delivered', 'cancelled'];
-const LASTNAME_LETTERS = ['B', 'C', 'D', 'H', 'K', 'N', 'R', 'S', 'W']; // each has 2+ customers
+const CATS = { 1: 'Business Cards', 2: 'Marketing Flyers', 3: 'Banners & Signs', 4: 'Labels & Stickers', 5: 'Promotional Apparel', 6: 'Stationery', 7: 'Packaging' };
+const SUPNAME = { 1: 'BigPress Printing Co.', 2: 'BannerWorld Wholesale', 3: 'SignCraft Distributors', 4: 'StickerSource Inc.', 5: 'Heritage Press Works', 7: 'Cascade Digital Print' };
+
+// Verified answer tables (re-verify with node test if proprint.sql ever changes).
+const DATA = {
+  // Q1 lookups
+  productPrice: {
+    'Standard Business Cards (500)': 29.99,
+    'Premium Business Cards (500)': 59.99,
+    'Glossy Flyers (1000)': 89.99,
+    'Vinyl Banner 3x6 ft': 74.99,
+    'Retractable Banner Stand': 159.99,
+    'Corrugated Yard Sign 18x24': 24.99,
+    'Storefront Window Decal': 99.99,
+    'Die-Cut Stickers (250)': 44.99,
+    'Tissue Paper (480 sheets)': 74.99,
+    'Crewneck Sweatshirts (24)': 419.76,
+  },
+  supplierCity: {
+    'BigPress Printing Co.': 'Memphis',
+    'BannerWorld Wholesale': 'Reno',
+    'StickerSource Inc.': 'San Jose',
+    'Heritage Press Works': 'Charlotte',
+    'Sunbelt Import Group': 'Denver',
+    'Vertex Promo Supply': 'Portland',
+  },
+  customerCompany: {
+    'Priya Shah': 'Shah Catering Co.',
+    'Maria Gonzalez': 'Gonzalez Graphics LLC',
+    'Sofia Nakamura': 'Valley Dental',
+    'Nina Kowalski': 'Cedar Bakery',
+    'Malik Slater': 'Union Plumbing',
+    'Tessa Chen': 'Evergreen Florist',
+  },
+  // Q2 equality
+  statusCount: { pending: 3, in_production: 5, shipped: 6, delivered: 30, cancelled: 1 },
+  carrierCount: { UPS: 9, FedEx: 8, USPS: 12, DHL: 7 },
+  lastNamesByCity: {
+    Austin: ['Gonzalez', 'Parker'],
+    Miami: ['Rahman', 'Reyes', 'Shah', 'Delgado'],
+    Minneapolis: ['Whitfield', 'Reyes', 'Kowalski'],
+    Milwaukee: ['Lindqvist', 'Haddad', 'Nakamura'],
+  },
+  // Q3 comparisons (counts)
+  priceAbove: { 55: 26, 75: 19, 100: 13, 120: 9, 150: 6 },
+  ordersTotalGeq: { 500: 18, 800: 7, 1000: 5 },
+  baseRateGeq: { 44000: 15, 47000: 9, 48000: 8 },
+  // Q4 order + limit
+  topExpensive: ['Embroidered Polos (24)', 'Crewneck Sweatshirts (24)', 'Canvas Tote Bags (100)', 'Custom Shipping Boxes (100)', 'Shopping Bags (250)'],
+  cheapestProduct: 'Corrugated Yard Sign 18x24',
+  catTopProduct: { 1: ['Cotton Business Cards (500)', 149.99], 2: ['Every Door Direct Postcards', 129.99], 3: ['Retractable Banner Stand', 159.99], 4: ['Product Labels (1000)', 119.99] },
+  // Q5 LIKE / NULL
+  letterCount: { B: 2, C: 2, D: 4, H: 2, K: 2, N: 4, R: 4, S: 3, W: 2 },
+  nullCompanyCount: 5,
+  // Q6 aggregates
+  statusSum: { pending: 524.93, in_production: 4038.37, shipped: 2024.73, delivered: 15558.72, cancelled: 389.97 },
+  avgCat: { 1: 95.99, 2: 97.49, 3: 86.42, 4: 71.99, 5: 383.51, 6: 68.74, 7: 137.49 },
+  maxSup: { 1: 129.99, 2: 159.99, 3: 99.99, 4: 119.99, 5: 149.99, 7: 189.99 },
+  yearOrders: { 2025: 8, 2026: 37 },
+  // Q7 group by
+  sourceTop: ['phone', 24],          // website: 21
+  statusTopValue: ['delivered', 15558.72], // runner-up: in_production 4038.37
+  catMostProducts: [3, 7],           // Banners & Signs; runner-ups: 5
+  // Q8 joins
+  productSupplier: {
+    'Retractable Banner Stand': 'BannerWorld Wholesale',
+    'Storefront Window Decal': 'SignCraft Distributors',
+    'Product Labels (1000)': 'StickerSource Inc.',
+    'Tissue Paper (480 sheets)': 'Cascade Digital Print',
+    'Crewneck Sweatshirts (24)': 'Great Lakes Finishing',
+    'Custom Shipping Boxes (100)': 'Cascade Digital Print',
+  },
+  ordersByCity: { 'Kansas City': 7, 'Denver': 6, 'Miami': 3, 'Minneapolis': 3, 'Portland': 3, 'Chicago': 3, 'Charlotte': 3, 'Boise': 3 },
+  repByOrder: { 9: 'Omar Haddad', 13: 'Omar Haddad', 20: 'Emily Watson', 28: 'Dan Gonzalez', 32: 'Sarah Kim', 37: 'Sarah Kim', 45: 'Sarah Kim' },
+  // Q9 join + group by
+  repTopValue2025: ['Marcus Bell', 359.95],  // runner-up: James Ortiz 294.93
+  repMostOrders2026: ['Dan Gonzalez', 7],    // runner-up: Dan Ito 6
+  stateTopOrders: ['MO', 7],                 // runner-up: CO 6
+  // Q10 multi-join + group by
+  catTopRevenue: { 2025: ['Banners & Signs', 409.93], 2026: ['Promotional Apparel', 6808.48] },
+  catTopUnitsBySource: { phone: ['Business Cards', 23], website: ['Labels & Stickers', 22] },
+};
+
+const money = (v) => '$' + Number(v).toFixed(2);
+const listOf = (arr) => arr.map(String).join(', ');
 
 const q1 = (rng) => {
-  const v = pick(rng, ['products', 'customers', 'suppliers', 'employees']);
-  const variants = {
-    products: {
+  const v = pick(rng, ['price', 'city', 'company']);
+  if (v === 'price') {
+    const name = pick(rng, Object.keys(DATA.productPrice));
+    return {
       skill: 'Basic SELECT',
-      prompt: `List <b>every product's</b> name and price. Return exactly the columns
-               <code>product_name</code> and <code>price</code> — in that order — for all 32 products.
-               (No WHERE clause needed: this is a simple read of one table.)`,
-      ref: `SELECT product_name, price FROM products`,
-    },
-    customers: {
+      prompt: `Find the price of the product <b>${name}</b> in the
+               <code>products</code> table.`,
+      ask: `What is its price? (answer with just the number, e.g., 74.99)`,
+      expected: [DATA.productPrice[name]],
+      ref: `SELECT price FROM products WHERE product_name = '${name}'`,
+    };
+  }
+  if (v === 'city') {
+    const s = pick(rng, Object.keys(DATA.supplierCity));
+    return {
       skill: 'Basic SELECT',
-      prompt: `List <b>every customer's</b> first name, last name, and city. Return exactly the columns
-               <code>first_name</code>, <code>last_name</code>, and <code>city</code> — in that order — for all 30 customers.
-               (No WHERE clause needed: this is a simple read of one table.)`,
-      ref: `SELECT first_name, last_name, city FROM customers`,
-    },
-    suppliers: {
-      skill: 'Basic SELECT',
-      prompt: `List <b>every supplier's</b> name, city, and state. Return exactly the columns
-               <code>supplier_name</code>, <code>city</code>, and <code>state</code> — in that order — for all 10 suppliers.
-               (No WHERE clause needed: this is a simple read of one table.)`,
-      ref: `SELECT supplier_name, city, state FROM suppliers`,
-    },
-    employees: {
-      skill: 'Basic SELECT',
-      prompt: `List <b>every employee's</b> first name, last name, and email. Return exactly the columns
-               <code>first_name</code>, <code>last_name</code>, and <code>email</code> — in that order — for all 18 employees.
-               (No WHERE clause needed: this is a simple read of one table.)`,
-      ref: `SELECT first_name, last_name, email FROM employees`,
-    },
+      prompt: `The supplier <b>${s}</b> is one of Proprint's partners in the
+               <code>suppliers</code> table.`,
+      ask: `Which city is that supplier based in? (answer with the city name)`,
+      expected: [DATA.supplierCity[s]],
+      ref: `SELECT city FROM suppliers WHERE supplier_name = '${s}'`,
+    };
+  }
+  const c = pick(rng, Object.keys(DATA.customerCompany));
+  return {
+    skill: 'Basic SELECT',
+    prompt: `The customer <b>${c}</b> buys through a company — look them up in the
+             <code>customers</code> table.`,
+    ask: `Which company do they order for? (answer with the company name)`,
+    expected: [DATA.customerCompany[c]],
+    ref: `SELECT company FROM customers WHERE first_name || ' ' || last_name = '${c}'`,
   };
-  return variants[v];
 };
 
 const q2 = (rng) => {
   const v = pick(rng, ['status', 'carrier', 'city']);
   if (v === 'status') {
-    const st = pick(rng, STATUSES_SMALL.concat(['delivered']));
+    const st = pick(rng, Object.keys(DATA.statusCount));
     return {
       skill: 'SELECT + WHERE',
-      prompt: `Find all orders whose status is <code>${st}</code>. Return <code>id</code>,
-               <code>order_date</code>, and <code>order_total</code> for each matching order from the
-               <code>orders</code> table. (Strings in SQL are written inside single quotes.)`,
-      note: `Tip: compare the status column to the text value '${st}' like this: WHERE status = '${st}'`,
-      ref: `SELECT id, order_date, order_total FROM orders WHERE status = '${st}'`,
+      prompt: `Filter the <code>orders</code> table to the orders whose
+               <code>status = '${st}'</code>.`,
+      ask: `How many orders have that status? (answer with just the number)`,
+      expected: [DATA.statusCount[st]],
+      ref: `SELECT COUNT(*) FROM orders WHERE status = '${st}'`,
     };
   }
   if (v === 'carrier') {
-    const c = pick(rng, ['UPS', 'FedEx', 'USPS', 'DHL']);
+    const c = pick(rng, Object.keys(DATA.carrierCount));
     return {
       skill: 'SELECT + WHERE',
-      prompt: `Find all shipments handled by <code>${c}</code>. Return <code>order_id</code>,
-               <code>tracking_number</code>, <code>date_shipped</code>, and <code>status</code> for each
-               matching shipment from the <code>shipments</code> table.`,
-      note: `Hint: WHERE carrier = '${c}'`,
-      ref: `SELECT order_id, tracking_number, date_shipped, status FROM shipments WHERE carrier = '${c}'`,
+      prompt: `Filter the <code>shipments</code> table to the shipments whose
+               <code>carrier = '${c}'</code>.`,
+      ask: `How many shipments did that carrier handle? (answer with just the number)`,
+      expected: [DATA.carrierCount[c]],
+      ref: `SELECT COUNT(*) FROM shipments WHERE carrier = '${c}'`,
     };
   }
-  const city = pick(rng, CITIES_3PLUS);
+  const city = pick(rng, Object.keys(DATA.lastNamesByCity));
   return {
     skill: 'SELECT + WHERE',
-    prompt: `Find all customers who live in <code>${city}</code>. Return <code>first_name</code>,
-             <code>last_name</code>, <code>company</code>, and <code>email</code> for each matching
-             customer from the <code>customers</code> table.`,
-    note: `Hint: WHERE city = '${city}'`,
-    ref: `SELECT first_name, last_name, company, email FROM customers WHERE city = '${city}'`,
+    prompt: `Filter the <code>customers</code> table to the customers who live in
+             <b>${city}</b>.`,
+    ask: `List the last names of everyone in that city. (answer with the last names, comma-separated — order doesn't matter)`,
+    expected: DATA.lastNamesByCity[city].slice(),
+    ref: `SELECT last_name FROM customers WHERE city = '${city}'`,
   };
 };
 
 const q3 = (rng) => {
   const v = pick(rng, ['price', 'total', 'salary']);
   if (v === 'price') {
-    const t = pick(rng, [55, 75, 100, 120]);
+    const t = pick(rng, Object.keys(DATA.priceAbove));
     return {
       skill: 'WHERE with numbers',
-      prompt: `List all products priced <b>above $${t}.00</b> (strictly greater than). Return
-               <code>product_name</code> and <code>price</code> from the <code>products</code> table.
-               <br>Hint: WHERE price &gt; ${t}`,
-      note: `SQL makes no distinction between numbers written as 55 or 55.00.`,
-      ref: `SELECT product_name, price FROM products WHERE price > ${t}`,
+      prompt: `Find the products priced <b>above $${t}.00</b> in the <code>products</code> table
+               (use <code>price &gt; ${t}</code>).`,
+      ask: `How many products cost more than $${t}? (answer with just the number)`,
+      expected: [DATA.priceAbove[t]],
+      ref: `SELECT COUNT(*) FROM products WHERE price > ${t}`,
     };
   }
   if (v === 'total') {
-    const t = pick(rng, [500, 800, 1000]);
+    const t = pick(rng, Object.keys(DATA.ordersTotalGeq));
     return {
       skill: 'WHERE with numbers',
-      prompt: `Find the big orders: all orders with an <code>order_total</code> of at least $${t}.00.
-               Return <code>id</code>, <code>order_date</code>, <code>order_total</code>, and
-               <code>status</code> from the <code>orders</code> table.
-               <br>Hint: WHERE order_total &gt;= ${t}`,
-      ref: `SELECT id, order_date, order_total, status FROM orders WHERE order_total >= ${t}`,
+      prompt: `Find the big orders — rows in <code>orders</code> with
+               <code>order_total &gt;= ${t}</code>.`,
+      ask: `How many orders have a total of at least ${money(t)}? (answer with just the number)`,
+      expected: [DATA.ordersTotalGeq[t]],
+      ref: `SELECT COUNT(*) FROM orders WHERE order_total >= ${t}`,
     };
   }
-  const t = pick(rng, [44000, 47000, 48000]);
+  const t = pick(rng, Object.keys(DATA.baseRateGeq));
   return {
     skill: 'WHERE with numbers',
-    prompt: `Find all employees whose <code>base_rate</code> is at least $${t.toLocaleString()}.
-             Return <code>first_name</code>, <code>last_name</code>, <code>base_rate</code>, and
-             <code>status</code> from the <code>employees</code> table.
-             <br>Hint: WHERE base_rate &gt;= ${t}`,
-    ref: `SELECT first_name, last_name, base_rate, status FROM employees WHERE base_rate >= ${t}`,
+    prompt: `Find the employees in <code>employees</code> whose
+             <code>base_rate &gt;= ${t}</code>.`,
+    ask: `How many employees earn a base rate of at least $${Number(t).toLocaleString()}? (answer with just the number)`,
+    expected: [DATA.baseRateGeq[t]],
+    ref: `SELECT COUNT(*) FROM employees WHERE base_rate >= ${t}`,
   };
 };
 
 const q4 = (rng) => {
-  const n = pick(rng, [3, 4, 5]);
-  const v = pick(rng, ['expensive', 'cheap', 'category']);
-  if (v === 'expensive') {
+  const v = pick(rng, ['top1', 'top3', 'cheapest', 'catTop']);
+  if (v === 'top1') {
     return {
       skill: 'ORDER BY + LIMIT',
-      prompt: `List the <b>${n} most expensive products</b> in the catalog. Return
-               <code>product_name</code> and <code>price</code>, sorted from most expensive to least.
-               <br>Hint: ORDER BY price DESC LIMIT ${n}`,
-      ref: `SELECT product_name, price FROM products ORDER BY price DESC LIMIT ${n}`,
+      prompt: `Sort <code>products</code> by price, highest first
+               (<code>ORDER BY price DESC</code>), and take just the first row
+               (<code>LIMIT 1</code>).`,
+      ask: `What is the name of the single most expensive product?`,
+      expected: [DATA.topExpensive[0]],
+      ref: `SELECT product_name FROM products ORDER BY price DESC LIMIT 1`,
     };
   }
-  if (v === 'cheap') {
+  if (v === 'top3') {
     return {
       skill: 'ORDER BY + LIMIT',
-      prompt: `List the <b>${n} cheapest products</b> in the catalog. Return <code>product_name</code>
-               and <code>price</code>, sorted from cheapest on up.
-               <br>Hint: ORDER BY price ASC (or just ORDER BY price) LIMIT ${n}`,
-      ref: `SELECT product_name, price FROM products ORDER BY price ASC LIMIT ${n}`,
+      prompt: `Sort <code>products</code> by price, highest first, and take the top 3
+               (<code>ORDER BY price DESC LIMIT 3</code>).`,
+      ask: `What are the names of the 3 most expensive products? (comma-separated — order doesn't matter)`,
+      expected: DATA.topExpensive.slice(0, 3),
+      ref: `SELECT product_name FROM products ORDER BY price DESC LIMIT 3`,
     };
   }
-  const cat = pick(rng, CATS.filter(c => [1, 2, 3, 4].includes(c.id)));
+  if (v === 'cheapest') {
+    return {
+      skill: 'ORDER BY + LIMIT',
+      prompt: `Sort <code>products</code> by price, lowest first
+               (<code>ORDER BY price ASC</code>), and take just the first row.`,
+      ask: `What is the name of the cheapest product?`,
+      expected: [DATA.cheapestProduct],
+      ref: `SELECT product_name FROM products ORDER BY price ASC LIMIT 1`,
+    };
+  }
+  const cat = pick(rng, Object.keys(DATA.catTopProduct));
   return {
     skill: 'ORDER BY + LIMIT',
-    prompt: `List the <b>${n} most expensive products</b> in the <i>${cat.name}</i> category
-             (<code>product_category_id = ${cat.id}</code>). Return <code>product_name</code> and
-             <code>price</code>.
-             <br>Hint: WHERE product_category_id = ${cat.id} ORDER BY price DESC LIMIT ${n}`,
-    ref: `SELECT product_name, price FROM products WHERE product_category_id = ${cat.id} ORDER BY price DESC LIMIT ${n}`,
+    prompt: `Filter <code>products</code> to the <i>${CATS[cat]}</i> category
+             (<code>product_category_id = ${cat}</code>), sort by price highest first, and take
+             the first row.`,
+    ask: `What's the name and price of the most expensive product in ${CATS[cat]}?
+          (two answers, comma-separated: name, price)`,
+    expected: DATA.catTopProduct[cat].slice(),
+    ref: `SELECT product_name, price FROM products
+           WHERE product_category_id = ${cat}
+           ORDER BY price DESC LIMIT 1`,
   };
 };
 
 const q5 = (rng) => {
   const v = pick(rng, ['letter', 'null']);
-  if (v === 'null') {
+  if (v === 'letter') {
+    const L = pick(rng, Object.keys(DATA.letterCount));
     return {
       skill: 'Text patterns & NULL',
-      prompt: `Some customers are individuals with <b>no company</b> on file. List all customers
-               whose <code>company</code> is missing (<code>NULL</code>). Return <code>first_name</code>,
-               <code>last_name</code>, and <code>email</code>.
-               <br>Hint: nothing is ever "= NULL" in SQL — use IS NULL.`,
-      ref: `SELECT first_name, last_name, email FROM customers WHERE company IS NULL`,
+      prompt: `Find the customers in <code>customers</code> whose <code>last_name</code> starts
+               with the letter <b>“${L}”</b> — in SQL that's
+               <code>WHERE last_name LIKE '${L}%'</code> (% matches any continuation).`,
+      ask: `How many customers have a last name starting with ${L}? (answer with just the number)`,
+      expected: [DATA.letterCount[L]],
+      ref: `SELECT COUNT(*) FROM customers WHERE last_name LIKE '${L}%'`,
     };
   }
-  const L = pick(rng, LASTNAME_LETTERS);
   return {
     skill: 'Text patterns & NULL',
-    prompt: `Find every customer whose <b>last name starts with the letter “${L}”</b>.
-             Return <code>first_name</code>, <code>last_name</code>, and <code>city</code>.
-             <br>Hint: WHERE last_name LIKE '${L}%' — the % matches any continuation.`,
-    ref: `SELECT first_name, last_name, city FROM customers WHERE last_name LIKE '${L}%'`,
+    prompt: `Some customers are individuals with <b>no company</b> on file. In SQL that value is
+             <code>NULL</code> — and nothing is ever <code>= NULL</code>; you need
+             <code>IS NULL</code>.`,
+    ask: `How many customers have no company on file? (answer with just the number)`,
+    expected: [DATA.nullCompanyCount],
+    ref: `SELECT COUNT(*) FROM customers WHERE company IS NULL`,
   };
 };
 
 const q6 = (rng) => {
-  const v = pick(rng, ['countyear', 'sumstatus', 'avgcat', 'maxsup', 'countsup']);
-  if (v === 'countyear') {
-    const y = pick(rng, ['2025', '2026']);
+  const v = pick(rng, ['sum', 'avg', 'max', 'yearcount']);
+  if (v === 'sum') {
+    const st = pick(rng, Object.keys(DATA.statusSum));
     return {
-      skill: 'Aggregates',
-      prompt: `How many orders were placed in <b>${y}</b>? Return a single value: the count of rows
-               in <code>orders</code> whose <code>order_date</code> falls in ${y}.
-               <br>The dates are stored as text like '${y}-07-08', so the easiest filter is
-               WHERE order_date LIKE '${y}%'. (If you know string functions you could instead use
-               substr(order_date, 1, 4) = '${y}' — either works.)`,
-      ref: `SELECT COUNT(*) FROM orders WHERE order_date LIKE '${y}%'`,
-    };
-  }
-  if (v === 'sumstatus') {
-    const st = pick(rng, STATUSES_ALL);
-    return {
-      skill: 'Aggregates',
-      prompt: `What is the <b>total value</b> of all <code>${st}</code> orders combined? Return a
-               single value: the SUM of <code>order_total</code> from the <code>orders</code> table
-               where <code>status = '${st}'</code>.`,
+      skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
+      prompt: `Add up the value of all <code>${st}</code> orders:
+               <code>SUM(order_total)</code> over the <code>orders</code> table filtered to
+               <code>status = '${st}'</code>.`,
+      ask: `What is the total value of all ${st} orders? (answer with just the dollar number — e.g., 1234.56)`,
+      expected: [DATA.statusSum[st]],
       ref: `SELECT SUM(order_total) FROM orders WHERE status = '${st}'`,
     };
   }
-  if (v === 'avgcat') {
-    const cat = pick(rng, CATS);
+  if (v === 'avg') {
+    const c = pick(rng, Object.keys(DATA.avgCat));
     return {
-      skill: 'Aggregates',
-      prompt: `What is the <b>average price</b> of products in the <i>${cat.name}</i> category
-               (<code>product_category_id = ${cat.id}</code>)? Return a single value: the AVG of
-               <code>price</code> from the <code>products</code> table for that category.`,
-      ref: `SELECT AVG(price) FROM products WHERE product_category_id = ${cat.id}`,
+      skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
+      prompt: `What does Proprint charge on average in the <i>${CATS[c]}</i> category?
+               Use <code>AVG(price)</code> over <code>products</code> filtered to
+               <code>product_category_id = ${c}</code>.`,
+      ask: `What is the average price in that category, rounded to cents? (answer with just the number)`,
+      expected: [DATA.avgCat[c]],
+      ref: `SELECT ROUND(AVG(price), 2) FROM products WHERE product_category_id = ${c}`,
     };
   }
-  if (v === 'maxsup') {
-    const s = pick(rng, SUPS);
+  if (v === 'max') {
+    const s = pick(rng, Object.keys(DATA.maxSup));
     return {
-      skill: 'Aggregates',
-      prompt: `What is the <b>highest product price</b> offered by <i>${s.name}</i>
-               (<code>supplier_id = ${s.id}</code>)? Return a single value: the MAX of
-               <code>price</code> from the <code>products</code> table for that supplier.`,
-      ref: `SELECT MAX(price) FROM products WHERE supplier_id = ${s.id}`,
+      skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
+      prompt: `<i>${SUPNAME[s]}</i> is supplier number ${s}. Find their priciest product with
+               <code>MAX(price)</code> over <code>products</code> filtered to
+               <code>supplier_id = ${s}</code>.`,
+      ask: `What is the highest price among that supplier's products? (answer with just the number)`,
+      expected: [DATA.maxSup[s]],
+      ref: `SELECT MAX(price) FROM products WHERE supplier_id = ${s}`,
     };
   }
-  const s = pick(rng, SUPS);
+  const y = pick(rng, Object.keys(DATA.yearOrders));
   return {
-    skill: 'Aggregates',
-    prompt: `How many products does Proprint source from <i>${s.name}</i>
-             (<code>supplier_id = ${s.id}</code>)? Return a single value: the COUNT of products
-             from that supplier in the <code>products</code> table.`,
-    ref: `SELECT COUNT(*) FROM products WHERE supplier_id = ${s.id}`,
+    skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
+    prompt: `Count the <code>orders</code> placed in <b>${y}</b>. The dates are stored as text
+             like '${y}-07-08', so the easiest filter is <code>WHERE order_date LIKE '${y}%'</code>.`,
+    ask: `How many orders were placed in ${y}? (answer with just the number)`,
+    expected: [DATA.yearOrders[y]],
+    ref: `SELECT COUNT(*) FROM orders WHERE order_date LIKE '${y}%'`,
   };
 };
 
 const q7 = (rng) => {
-  const v = pick(rng, ['bysource', 'bystatus', 'bycat']);
-  if (v === 'bysource') {
+  const v = pick(rng, ['source', 'status', 'cat']);
+  if (v === 'source') {
+    const [who, n] = DATA.sourceTop;
     return {
       skill: 'GROUP BY',
-      prompt: `Do customers order more by phone or by web? For <b>each</b> value of
-               <code>source</code> in the <code>orders</code> table, show the source and the
-               <b>number of orders</b> placed that way. Two rows should come back (one for phone,
-               one for website).
-               <br>Hint: GROUP BY source, and use COUNT(*) for the number of orders.`,
-      ref: `SELECT source, COUNT(*) AS order_count FROM orders GROUP BY source`,
+      prompt: `Group the <code>orders</code> table by <code>source</code>
+               (<code>GROUP BY source</code>) with <code>COUNT(*)</code> for each.`,
+      ask: `Which source (phone or website) accounts for more orders, and how many orders is that?
+            (two answers, comma-separated: source, count)`,
+      expected: [who, n],
+      ref: `SELECT source, COUNT(*) FROM orders GROUP BY source ORDER BY COUNT(*) DESC LIMIT 1`,
     };
   }
-  if (v === 'bystatus') {
+  if (v === 'status') {
+    const [st, total] = DATA.statusTopValue;
     return {
       skill: 'GROUP BY',
-      prompt: `Break down sales pipeline value: for <b>each</b> <code>status</code> in the
-               <code>orders</code> table, show the status, the <b>number of orders</b> with that
-               status, and the <b>total order value</b> (SUM of <code>order_total</code>).
-               There are five statuses — expect five rows.
-               <br>Hint: GROUP BY status.`,
-      ref: `SELECT status, COUNT(*) AS order_count, SUM(order_total) AS total_value FROM orders GROUP BY status`,
+      prompt: `Group <code>orders</code> by <code>status</code> and total the value of each group
+               with <code>SUM(order_total)</code>.`,
+      ask: `Which status has the highest total order value, and what is that total?
+            (two answers, comma-separated: status, dollar amount)`,
+      expected: [st, total],
+      ref: `SELECT status, ROUND(SUM(order_total), 2) AS total_value
+              FROM orders GROUP BY status ORDER BY SUM(order_total) DESC LIMIT 1`,
     };
   }
+  const [cid, n] = DATA.catMostProducts;
   return {
     skill: 'GROUP BY',
-    prompt: `For <b>each product category</b> (<code>product_category_id</code> in the
-             <code>products</code> table), show the category id and the <b>number of products</b>
-             Proprint sells in it (seven categories, so seven rows).
-             <br>Hint: GROUP BY product_category_id.`,
-    ref: `SELECT product_category_id, COUNT(*) AS product_count FROM products GROUP BY product_category_id`,
+    prompt: `Group <code>products</code> by <code>product_category_id</code> and count the
+             products in each category.`,
+    ask: `Which product_category_id contains the most products, and how many products is that?
+          (two answers, comma-separated: category id, count)`,
+    expected: [cid, n],
+    ref: `SELECT product_category_id, COUNT(*) FROM products
+            GROUP BY product_category_id ORDER BY COUNT(*) DESC LIMIT 1`,
   };
 };
 
 const q8 = (rng) => {
-  const v = pick(rng, ['prodsup', 'ordcust', 'ordemp']);
+  const v = pick(rng, ['prodsup', 'citycount', 'orderrep']);
   if (v === 'prodsup') {
-    const cat = pick(rng, CATS);
+    const p = pick(rng, Object.keys(DATA.productSupplier));
     return {
       skill: 'JOIN',
-      prompt: `Who makes what? List the <b>name and supplier of every product</b> in the
-               <i>${cat.name}</i> category. Join <code>products</code> with <code>suppliers</code>
-               (a product's <code>supplier_id</code> matches <code>suppliers.id</code>) and keep only
-               products whose <code>product_category_id = ${cat.id}</code>. Return
-               <code>product_name</code> and <code>supplier_name</code>.
-               <br>Hint: FROM products p JOIN suppliers s ON s.id = p.supplier_id.
-               If you haven't learned aliases yet, you can write the table names in full.`,
-      ref: `SELECT p.product_name, s.supplier_name
-              FROM products p
-              JOIN suppliers s ON s.id = p.supplier_id
-             WHERE p.product_category_id = ${cat.id}`,
+      prompt: `Every product belongs to a supplier. Join <code>products</code> with
+               <code>suppliers</code> — the product's <code>supplier_id</code> matches
+               <code>suppliers.id</code> — and find who supplies
+               <b>${p}</b>.`,
+      ask: `Which supplier supplies that product? (answer with the supplier name)`,
+      expected: [DATA.productSupplier[p]],
+      ref: `SELECT s.supplier_name
+              FROM products p JOIN suppliers s ON s.id = p.supplier_id
+             WHERE p.product_name = '${p}'`,
     };
   }
-  if (v === 'ordcust') {
-    const city = pick(rng, ORDER_CITIES);
+  if (v === 'citycount') {
+    const city = pick(rng, Object.keys(DATA.ordersByCity));
     return {
       skill: 'JOIN',
-      prompt: `Who is ordering from <code>${city}</code>? List every order placed by a customer who
-               lives in ${city}. Join <code>orders</code> with <code>customers</code> (<code>orders.customer_id</code>
-               matches <code>customers.id</code>) and keep only customers whose <code>city = '${city}'</code>.
-               Return the <code>order id</code>, <code>order_date</code>, <code>order_total</code>,
-               and the customer's <code>last_name</code>.`,
-      ref: `SELECT o.id, o.order_date, o.order_total, c.last_name
-              FROM orders o
-              JOIN customers c ON c.id = o.customer_id
+      prompt: `Join <code>orders</code> with <code>customers</code> (<code>orders.customer_id</code>
+               matches <code>customers.id</code>) and keep only customers who live in
+               <b>${city}</b>.`,
+      ask: `How many orders were placed by customers living in ${city}? (answer with just the number)`,
+      expected: [DATA.ordersByCity[city]],
+      ref: `SELECT COUNT(*) FROM orders o JOIN customers c ON c.id = o.customer_id
              WHERE c.city = '${city}'`,
     };
   }
-  const st = pick(rng, STATUSES_SMALL);
+  const oid = pick(rng, Object.keys(DATA.repByOrder));
   return {
     skill: 'JOIN',
-    prompt: `Sales reps love seeing progress. List every <code>${st}</code> order together with the
-             sales rep who took it. Join <code>orders</code> with <code>employees</code>
-             (<code>orders.salesperson_id</code> matches <code>employees.id</code>) and keep only
-             orders whose <code>status = '${st}'</code>. Return the <code>order id</code>,
-             <code>order_date</code>, and the rep's <code>first_name</code> and <code>last_name</code>.`,
-    ref: `SELECT o.id, o.order_date, e.first_name, e.last_name
-            FROM orders o
-            JOIN employees e ON e.id = o.salesperson_id
-           WHERE o.status = '${st}'`,
+    prompt: `Order <b>#${oid}</b> was taken by a sales rep. Join <code>orders</code> with
+             <code>employees</code> (<code>orders.salesperson_id</code> matches
+             <code>employees.id</code>) to find them.`,
+    ask: `Which employee took that order? (answer with their first and last name)`,
+    expected: [DATA.repByOrder[oid]],
+    ref: `SELECT e.first_name || ' ' || e.last_name AS rep
+            FROM orders o JOIN employees e ON e.id = o.salesperson_id
+           WHERE o.id = ${oid}`,
   };
 };
 
 const q9 = (rng) => {
-  const v = pick(rng, ['persales', 'percity']);
-  if (v === 'persales') {
-    const y = pick(rng, ['2025', '2026']);
+  const v = pick(rng, ['rep2025', 'rep2026', 'state']);
+  if (v === 'rep2025') {
+    const [who, total] = DATA.repTopValue2025;
     return {
       skill: 'JOIN + GROUP BY',
-      prompt: `Sales leaderboard: for <b>each sales rep</b>, show their <code>first_name</code>,
-               <code>last_name</code>, the <b>number of orders</b> they took in <b>${y}</b>, and the
-               <b>total value</b> of those orders (SUM of <code>order_total</code>). Join
-               <code>orders</code> with <code>employees</code>, keep only orders <b>that were not
-               cancelled</b> and whose <code>order_date</code> is in ${y}, and group by the rep.
-               <br>Hint: WHERE o.status != 'cancelled' AND o.order_date LIKE '${y}%'`,
-      note: `Include only reps who took at least one qualifying order — an inner JOIN naturally does that.`,
-      ref: `SELECT e.first_name, e.last_name, COUNT(*) AS order_count, SUM(o.order_total) AS total_value
-              FROM orders o
-              JOIN employees e ON e.id = o.salesperson_id
-             WHERE o.status != 'cancelled' AND o.order_date LIKE '${y}%'
-             GROUP BY o.salesperson_id, e.first_name, e.last_name`,
+      prompt: `Sales leaderboard: join <code>orders</code> with <code>employees</code>
+               (<code>orders.salesperson_id</code> matches <code>employees.id</code>), keep only
+               <b>non-cancelled</b> orders (<code>status != 'cancelled'</code>) from
+               <b>2025</b> (<code>order_date LIKE '2025%'</code>), group by the sales rep, and
+               total each rep's <code>order_total</code>.`,
+      ask: `Which sales rep generated the most order value in 2025, and how much was it?
+            (two answers, comma-separated: first and last name, dollar amount)`,
+      expected: [who, total],
+      ref: `SELECT e.first_name || ' ' || e.last_name AS rep, ROUND(SUM(o.order_total), 2) AS total_value
+              FROM orders o JOIN employees e ON e.id = o.salesperson_id
+             WHERE o.status != 'cancelled' AND o.order_date LIKE '2025%'
+             GROUP BY o.salesperson_id
+             ORDER BY SUM(o.order_total) DESC LIMIT 1`,
     };
   }
+  if (v === 'rep2026') {
+    const [who, n] = DATA.repMostOrders2026;
+    return {
+      skill: 'JOIN + GROUP BY',
+      prompt: `Join <code>orders</code> with <code>employees</code>
+               (<code>salesperson_id</code> matches <code>employees.id</code>), keep only
+               <b>non-cancelled</b> orders from <b>2026</b>, group by the rep, and count each
+               rep's orders.`,
+      ask: `Which sales rep took the most orders in 2026, and how many was that?
+            (two answers, comma-separated: first and last name, count)`,
+      expected: [who, n],
+      ref: `SELECT e.first_name || ' ' || e.last_name AS rep, COUNT(*) AS order_count
+              FROM orders o JOIN employees e ON e.id = o.salesperson_id
+             WHERE o.status != 'cancelled' AND o.order_date LIKE '2026%'
+             GROUP BY o.salesperson_id
+             ORDER BY COUNT(*) DESC LIMIT 1`,
+    };
+  }
+  const [st, n] = DATA.stateTopOrders;
   return {
     skill: 'JOIN + GROUP BY',
-    prompt: `Where does the money come from? For <b>each state</b>, show the <b>number of orders</b>
-             placed by customers living in that state and the <b>total value</b> of those orders.
-             Join <code>orders</code> with <code>customers</code> (<code>orders.customer_id</code>
-             matches <code>customers.id</code>), <b>exclude cancelled orders</b>, and group by
-             <code>customers.state</code>. Return <code>state</code>, the order count, and the
-             total order value (SUM of <code>order_total</code>).`,
-    ref: `SELECT c.state, COUNT(*) AS order_count, SUM(o.order_total) AS total_value
-            FROM orders o
-            JOIN customers c ON c.id = o.customer_id
+    prompt: `Join <code>orders</code> with <code>customers</code> (<code>customer_id</code>
+             matches <code>customers.id</code>), <b>exclude cancelled orders</b>, group by
+             <code>customers.state</code>, and count the orders from each state.`,
+    ask: `Which state placed the most orders, and how many was that?
+          (two answers, comma-separated: two-letter state, count)`,
+    expected: [st, n],
+    ref: `SELECT c.state, COUNT(*) AS order_count
+            FROM orders o JOIN customers c ON c.id = o.customer_id
            WHERE o.status != 'cancelled'
-           GROUP BY c.state`,
+           GROUP BY c.state
+           ORDER BY COUNT(*) DESC LIMIT 1`,
   };
 };
 
 const q10 = (rng) => {
   const v = pick(rng, ['revenue', 'units']);
   if (v === 'revenue') {
-    const y = pick(rng, ['2025', '2026']);
+    const y = pick(rng, Object.keys(DATA.catTopRevenue));
+    const [cat, rev] = DATA.catTopRevenue[y];
     return {
-      skill: 'JOIN + GROUP BY (grand finale)',
-      prompt: `The capstone: <b>revenue by product category.</b> For each <i>category name</i>, show
-               the total money brought in by its line items — that's SUM of
-               (<code>unit_price × qty</code>) across all <b>non-cancelled</b> orders placed in
-               <b>${y}</b>. Return <code>category_name</code> and the revenue sum.
-               <br>You'll need four tables: <code>order_products</code> → <code>products</code> →
-               <code>product_categories</code>, plus <code>orders</code> for the year and status
-               filters (join <code>orders</code> to <code>order_products</code> on
-               <code>order_id</code>).
-               <br>Hint: WHERE o.status != 'cancelled' AND o.order_date LIKE '${y}%', then
-               GROUP BY with a join through to <code>product_categories</code>.`,
-      note: `Only categories that actually sold something in ${y} should appear
-            (${y === '2025' ? 'four rows' : 'seven rows'}).`,
-      ref: `SELECT pc.category_name, SUM(op.unit_price * op.qty) AS revenue
+      skill: 'Multi-join + GROUP BY (grand finale)',
+      prompt: `The capstone: revenue by product category. Join
+               <code>order_products</code> → <code>products</code> →
+               <code>product_categories</code>, plus <code>orders</code> (join it to
+               <code>order_products</code> on <code>order_id</code>) so you can keep only
+               <b>non-cancelled</b> orders placed in <b>${y}</b>. Revenue means
+               <code>SUM(unit_price * qty)</code> for each
+               <code>product_categories.category_name</code> group.`,
+      ask: `Which product category generated the most revenue in ${y}, and how much was it?
+            (two answers, comma-separated: category name, dollar amount)`,
+      expected: [cat, rev],
+      ref: `SELECT pc.category_name, ROUND(SUM(op.unit_price * op.qty), 2) AS revenue
               FROM orders o
               JOIN order_products op ON op.order_id = o.id
               JOIN products p         ON p.id = op.product_id
               JOIN product_categories pc ON pc.id = p.product_category_id
              WHERE o.status != 'cancelled' AND o.order_date LIKE '${y}%'
-             GROUP BY pc.id, pc.category_name`,
+             GROUP BY pc.id
+             ORDER BY SUM(op.unit_price * op.qty) DESC LIMIT 1`,
     };
   }
-  const src = pick(rng, ['website', 'phone']);
+  const src = pick(rng, Object.keys(DATA.catTopUnitsBySource));
+  const [cat, units] = DATA.catTopUnitsBySource[src];
   return {
-    skill: 'JOIN + GROUP BY (grand finale)',
-    prompt: `The capstone: <b>units sold by product category.</b> For each <i>category name</i>, show
-             the total quantity of items sold — SUM of <code>qty</code> in
-             <code>order_products</code> — across all <b>non-cancelled</b> orders that were placed
-             via <b>${src}</b>. Return <code>category_name</code> and the total quantity.
-             <br>You'll need four tables: <code>order_products</code> → <code>products</code> →
-             <code>product_categories</code>, plus <code>orders</code> for the source and status
-             filters (join <code>orders</code> to <code>order_products</code> on
-             <code>order_id</code>).
-             <br>Hint: WHERE o.source = '${src}' AND o.status != 'cancelled', then
-             GROUP BY with a join through to <code>product_categories</code>.`,
+    skill: 'Multi-join + GROUP BY (grand finale)',
+    prompt: `The capstone: units sold by product category. Join
+             <code>order_products</code> → <code>products</code> →
+             <code>product_categories</code>, plus <code>orders</code> (join it to
+             <code>order_products</code> on <code>order_id</code>) so you can keep only
+             <b>non-cancelled</b> orders placed via <b>${src}</b>. Units means
+             <code>SUM(qty)</code> for each <code>category_name</code> group.`,
+    ask: `Which product category sold the most units in ${src} orders, and how many units?
+          (two answers, comma-separated: category name, count)`,
+    expected: [cat, units],
     ref: `SELECT pc.category_name, SUM(op.qty) AS units_sold
             FROM orders o
             JOIN order_products op ON op.order_id = o.id
             JOIN products p         ON p.id = op.product_id
             JOIN product_categories pc ON pc.id = p.product_category_id
            WHERE o.source = '${src}' AND o.status != 'cancelled'
-           GROUP BY pc.id, pc.category_name`,
+           GROUP BY pc.id
+           ORDER BY SUM(op.qty) DESC LIMIT 1`,
   };
 };
 
@@ -690,10 +795,38 @@ function buildQuestions(name) {
 }
 
 /* ============================================================
- * 3. App state, persistence, submission
+ * 3. Answer checking
+ *    - split on commas / semicolons / colons / newlines
+ *    - numbers: strip $ and commas, compare rounded to cents
+ *    - text: case-insensitive exact match
+ *    - order of multiple values doesn't matter
  * ============================================================ */
-const LS_KEY = 'sql-practice-quiz-v2';
-let state = null; // { name, answers: [string x10], submitted, receipt }
+function splitAnswer(s) {
+  // collapse thousands separators in numbers like "15,558.72" or "$1,234" so the
+  // comma isn't treated as a value separator (a comma followed by a space still splits)
+  const protected_ = String(s || '').replace(/(\d),(?=\d{3}(\.\d+)?(\D|$))/g, '$1');
+  return protected_
+    .split(/[,;:\n]+/)
+    .map((p) => p.trim().replace(/^["']|["']$/g, '').trim())
+    .filter((p) => p.length > 0);
+}
+function normPart(p) {
+  const t = String(p).replace(/\$/g, '').replace(/,/g, '').trim();
+  if (/^-?\d+(\.\d+)?$/.test(t)) return 'n:' + (Math.round(parseFloat(t) * 100) / 100);
+  return 's:' + t.toLowerCase();
+}
+function checkAnswer(input, expected) {
+  const got = splitAnswer(input).map(normPart).sort();
+  if (!got.length) return false;
+  const want = expected.map(String).map(normPart).sort();
+  return got.length === want.length && got.every((v, i) => v === want[i]);
+}
+
+/* ============================================================
+ * 4. App state, persistence, submission
+ * ============================================================ */
+const LS_KEY = 'sql-practice-quiz-v3';
+let state = null; // { name, answers: [string x10], sqls: [string x10], submitted, receipt }
 let QUESTIONS = [];
 
 function loadState() {
@@ -701,7 +834,8 @@ function loadState() {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && typeof s.name === 'string' && Array.isArray(s.answers) && s.answers.length === 10) return s;
+      if (s && typeof s.name === 'string' && Array.isArray(s.answers) && s.answers.length === 10
+          && Array.isArray(s.sqls) && s.sqls.length === 10) return s;
     }
   } catch (e) { /* ignore */ }
   return null;
@@ -723,7 +857,8 @@ function stripHtml(html) {
 }
 
 function receiptFor() {
-  const data = [xmur3(state.name)(), ...state.answers.map(a => a.length), ...state.answers].join('|');
+  const correctness = state.answers.map((a, i) => (a.trim() ? (checkAnswer(a, QUESTIONS[i].expected) ? 2 : 1) : 0));
+  const data = [xmur3(state.name)(), ...correctness].join('|');
   return xmur3(data)().toString(36);
 }
 
@@ -734,7 +869,7 @@ function supa() {
 }
 
 /* ============================================================
- * 4. UI
+ * 5. UI
  * ============================================================ */
 const $ = (id) => document.getElementById(id);
 let curQ = 0;
@@ -757,7 +892,7 @@ async function loadSchemaPanel() {
 
 function startQuiz(name) {
   QUESTIONS = buildQuestions(name);
-  state = { name, answers: Array(10).fill(''), submitted: false, receipt: '' };
+  state = { name, answers: Array(10).fill(''), sqls: Array(10).fill(''), submitted: false, receipt: '' };
   saveState();
   showQuiz(name);
 }
@@ -798,7 +933,8 @@ function renderNav() {
 
 function stash() {
   if (state) {
-    state.answers[curQ] = $('sqlInput').value;
+    state.answers[curQ] = $('answerInput').value;
+    state.sqls[curQ] = $('sqlInput').value;
     saveState();
   }
 }
@@ -807,9 +943,11 @@ function renderQuestion() {
   const q = QUESTIONS[curQ];
   $('qNum').textContent = curQ + 1;
   $('qSkill').textContent = 'Q' + (curQ + 1) + ' · ' + q.skill;
-  $('qPrompt').innerHTML = q.prompt;
-  $('qNote').innerHTML = q.note ? `<b>Notes:</b> ${q.note}` : '';
-  $('sqlInput').value = state.answers[curQ] || '';
+  $('qPrompt').innerHTML = `<b>Question:</b> ` + q.prompt;
+  $('qNote').innerHTML = q.note || '';
+  $('qAsk').innerHTML = `<b>✏️ ` + q.ask + `</b>`;
+  $('answerInput').value = state.answers[curQ] || '';
+  $('sqlInput').value = state.sqls[curQ] || '';
   $('btnPrev').textContent = '← Question ' + curQ;
   $('btnPrev').disabled = curQ === 0;
   $('btnNext').textContent = 'Question ' + (curQ + 2) + ' →';
@@ -831,8 +969,18 @@ async function submitAnswers() {
   const receipt = receiptFor();
   const payload = {
     student_name: state.name,
-    questions: QUESTIONS.map((q, i) => ({ num: i + 1, skill: q.skill, prompt: stripHtml(q.prompt) })),
-    answers: state.answers.map((a, i) => ({ num: i + 1, answer: a.trim() })),
+    questions: QUESTIONS.map((q, i) => ({
+      num: i + 1,
+      skill: q.skill,
+      prompt: stripHtml(q.prompt) + ' ' + stripHtml(q.ask),
+    })),
+    answers: state.answers.map((a, i) => ({
+      num: i + 1,
+      answer: a.trim(),
+      sql: (state.sqls[i] || '').trim(),
+      expected: QUESTIONS[i].expected.map(String).join(', '),
+      correct: a.trim() ? checkAnswer(a, QUESTIONS[i].expected) : false,
+    })),
     receipt,
   };
   try {
@@ -848,6 +996,8 @@ async function submitAnswers() {
   state.submitted = true;
   state.receipt = receipt;
   saveState();
+  const score = payload.answers.filter(a => a.correct).length;
+  $('finalScore').textContent = score + ' / 10 correct';
   $('finalName').textContent = state.name;
   $('finalAnswered').textContent = answered;
   $('receiptCode').textContent = receipt;
@@ -867,7 +1017,8 @@ function showTeacher(name) {
     card.innerHTML =
       `<div class="skill">Q${i + 1} · ${q.skill}</div>` +
       `<div class="prompt" style="font-size:.98rem;">${q.prompt}</div>` +
-      (q.note ? `<div class="note">${q.note}</div>` : '') +
+      `<div class="ask" style="margin-top:10px;">✏️ ${q.ask}</div>` +
+      `<div class="note">Correct answer: <span class="expected">${q.expected.map(String).join(', ')}</span></div>` +
       `<div class="keyref">${q.ref.replace(/</g, '&lt;')}</div>`;
     list.appendChild(card);
   });
@@ -885,25 +1036,27 @@ $('btnStart').addEventListener('click', () => {
   err.classList.add('hidden');
 
   const saved = loadState();
-  if (saved && saved.name.toLowerCase() === n1.toLowerCase() && !saved.submitted) {
+  if (saved && saved.name.toLowerCase() === n1.toLowerCase() && saved.submitted) {
+    state = saved;
+    QUESTIONS = buildQuestions(state.name);
+    const score = state.answers.filter((a, i) => a.trim() && checkAnswer(a, QUESTIONS[i].expected)).length;
+    $('finalScore').textContent = score + ' / 10 correct';
+    $('finalName').textContent = state.name;
+    $('finalAnswered').textContent = state.answers.filter(a => a.trim()).length;
+    $('receiptCode').textContent = state.receipt;
+    $('screen-start').classList.add('hidden');
+    $('screen-final').classList.remove('hidden');
+    return;
+  }
+  if (saved && saved.name.toLowerCase() === n1.toLowerCase()) {
     state = saved;
     resumeQuiz();
   } else {
-    if (saved && saved.name.toLowerCase() === n1.toLowerCase() && saved.submitted) {
-      // already submitted under this name — let them see the finish screen again
-      state = saved;
-      QUESTIONS = buildQuestions(state.name);
-      $('finalName').textContent = state.name;
-      $('finalAnswered').textContent = state.answers.filter(a => a.trim()).length;
-      $('receiptCode').textContent = state.receipt;
-      $('screen-start').classList.add('hidden');
-      $('screen-final').classList.remove('hidden');
-      return;
-    }
     startQuiz(n1);
   }
 });
 
+$('answerInput').addEventListener('input', stash);
 $('sqlInput').addEventListener('input', stash);
 $('btnPrev').addEventListener('click', () => { stash(); if (curQ > 0) { curQ--; renderQuestion(); } });
 $('btnNext').addEventListener('click', () => { stash(); if (curQ < 9) { curQ++; renderQuestion(); } });
@@ -934,7 +1087,7 @@ if (location.hash.toLowerCase() === '#teacher') $('teacherPanel').classList.remo
 
 /* warn about unsent draft when leaving mid-quiz */
 window.addEventListener('beforeunload', (e) => {
-  if (state && !state.submitted && state.answers.some(a => a.trim())) {
+  if (state && !state.submitted && (state.answers.some(a => a.trim()) || state.sqls.some(s => s.trim()))) {
     e.preventDefault();
     e.returnValue = 'You have unsent quiz answers — they are saved in this browser, but not submitted yet.';
   }

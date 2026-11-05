@@ -49,19 +49,23 @@ between them.
 Take-home / lab-style solo quiz. A student enters their name, then answers **10 questions of
 identical types for the whole class** — basic SELECT → WHERE → ORDER BY + LIMIT → LIKE/NULL →
 aggregates → GROUP BY → JOIN → JOIN + GROUP BY → multi-join + GROUP BY — but the **details are
-seeded from the student's name**, so each person gets different cities, statuses, thresholds,
-years and suppliers to look up. Same name always regenerates the same quiz (it's the seed).
+seeded from the student's name**, so each person gets different products, cities, statuses and
+thresholds to look up. Same name always regenerates the same quiz (it's the seed).
 
-- The app only **presents the questions and collects the student's SQL answers** (one text answer
-  per question). Nothing is executed or auto-graded in the browser — the instructor grades.
-- Pressing **Submit** inserts one row in the `sql_quiz_submissions` Supabase table (name, the
-  exact questions that student saw, their answers, a receipt code). Query it from the Supabase
-  dashboard after class: newest row per name wins if a student submitted twice.
+- Each question is a business question with a **specific, checkable answer** (a number, a name,
+  or a short comma-separated list). Students run their SQL against `sql-quiz/proprint.sql` in
+  their own SQLite client, then type the answer their query returns (and optionally paste the SQL
+  they used — the instructor sees both).
+- Pressing **Submit** inserts one row in the `sql_quiz_submissions` Supabase table: the student's
+  name, their questions, their answers, the SQL, the expected answer, and a computed
+  **correct/incorrect flag per question** — grading is a glance at the dashboard. Checks are
+  tolerant of formatting ($, thousands commas, case, order of values) but not of wrong values.
 - **Answer key:** open `/sql-quiz/#teacher`, type a student's name exactly as they entered it,
-  and see their questions with one correct solution for each.
-- Files: `sql-quiz/index.html` (app), `sql-quiz/proprint.sql` (schema + dummy data, shown to
-  students as a reference and used for grading), `sql-quiz/schema.sql` (Supabase table).
-  Edit the question templates in `index.html` to change what the class is asked.
+  and see their questions with the correct answer and a reference query for each.
+- Files: `sql-quiz/index.html` (app), `sql-quiz/proprint.sql` (schema + dummy data — students
+  load this into a SQLite client), `sql-quiz/schema.sql` (Supabase table). Edit the question
+  builders in `index.html` to change what the class is asked; expected answers live in the
+  `DATA` object (verified against the data by the test harness pattern in git history).
 
 ---
 
@@ -125,15 +129,16 @@ See `econ3120-value-chain/README.md` for full details.
 ## 📝 Running the SQL practice quiz
 
 1. Students open `/sql-quiz/`, type their name twice, and get their 10 seeded questions
-   (answerable in one sitting or across sessions — drafts are saved in their browser).
-2. They write one SQL statement per question and press **Submit my answers** — one row lands
-   in `sql_quiz_submissions` with their name, their exact questions, and their answers.
-   Keep a copy (screenshot) of the receipt if you ask for one.
-3. To grade, open `/sql-quiz/#teacher` and enter each student's name exactly as they typed it:
-   you get their questions with a reference solution. Or query the table directly, e.g.
-   `select student_name, answers, receipt, created_at from sql_quiz_submissions
-   order by student_name, created_at desc;` — run each answer against `sql-quiz/proprint.sql`
-   in your own SQLite client to see what it returns.
+   (answerable in one sitting or across sessions — drafts are saved in their browser). They
+   load `proprint.sql` into a SQLite client (e.g., DB Browser for SQLite), write their query,
+   and enter the answer it returns.
+2. They press **Submit my answers** — one row lands in `sql_quiz_submissions` with their
+   questions, answers, SQL, expected answers, and a computed correct flag per question.
+3. Grading is a dashboard glance: every question carries its own correct/incorrect flag, e.g.
+   `select student_name, answers, created_at from sql_quiz_submissions
+   order by student_name, created_at desc;`. For disputes, open `/sql-quiz/#teacher`,
+   enter the student's name exactly as they typed it, and compare against the correct
+   answers and reference queries.
 
 ## ✏️ Customizing
 
