@@ -64,7 +64,8 @@
   .qnav button.done { color: var(--accent2); border-color: var(--accent2); }
   .qnav button.cur { background: var(--hpu); border-color: var(--hpu-glow); }
   .skill { color: var(--accent2); font-weight: 700; font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
-  .prompt { font-size: 1.12rem; line-height: 1.65; font-weight: 600; }
+  .askline { color: var(--muted); font-size: .8rem; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+  .prompt { font-size: 1.12rem; line-height: 1.65; font-weight: 600; color: #fff; }
   .prompt code, .note code, a { background: #180830; border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: .92em; }
   a { color: var(--accent2); text-decoration: none; }
   .hint { color: var(--muted); font-size: .85rem; margin-top: 12px; line-height: 1.55; }
@@ -144,8 +145,8 @@
 
     <div class="card">
       <div class="skill" id="qSkill"></div>
+      <div class="askline">Write a query that answers this:</div>
       <div class="prompt" id="qPrompt"></div>
-      <div class="hint" id="qNote"></div>
       <div class="resulthead" id="qResHead">Your query must return exactly this result:</div>
       <div class="resultwrap" id="qExpected"></div>
     </div>
@@ -457,9 +458,8 @@ function renderQuestion() {
   const q = QUESTIONS[curQ];
   const solved = state.solved[curQ];
   $('qNum').textContent = curQ + 1;
-  $('qSkill').textContent = 'Question ' + (curQ + 1) + ' of 10 · ' + q.skill;
-  $('qPrompt').innerHTML = '<b>Write a query that answers this:</b> ' + q.prompt;
-  $('qNote').innerHTML = q.note ? `<b>Notes:</b> ${q.note}` : '';
+  $('qSkill').textContent = 'Question ' + (curQ + 1) + ' of 10';
+  $('qPrompt').innerHTML = q.prompt;
   $('sqlInput').value = state.sqls[curQ] || '';
   $('sqlInput').disabled = solved;
   $('btnCheck').disabled = solved;

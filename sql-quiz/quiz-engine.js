@@ -128,9 +128,7 @@ const q1 = (rng) => {
     const name = pick(rng, Object.keys(DATA.productPrice));
     return {
       skill: 'Basic SELECT',
-      prompt: `Look up the product <b>${name}</b> in the <code>products</code> table —
-               what is its price?
-               <div class="hint">Answer with just the number, e.g., 74.99.</div>`,
+      prompt: `What is the price of the product <b>${name}</b>?`,
       expected: [DATA.productPrice[name]],
       ref: `SELECT price FROM products WHERE product_name = '${name}'`,
     };
@@ -139,9 +137,7 @@ const q1 = (rng) => {
     const s = pick(rng, Object.keys(DATA.supplierCity));
     return {
       skill: 'Basic SELECT',
-      prompt: `Find the supplier <b>${s}</b> in the <code>suppliers</code> table — which city
-               are they based in?
-               <div class="hint">Answer with the city name.</div>`,
+      prompt: `Which city is the supplier <b>${s}</b> based in?`,
       expected: [DATA.supplierCity[s]],
       ref: `SELECT city FROM suppliers WHERE supplier_name = '${s}'`,
     };
@@ -149,9 +145,7 @@ const q1 = (rng) => {
   const c = pick(rng, Object.keys(DATA.customerCompany));
   return {
     skill: 'Basic SELECT',
-    prompt: `Find the customer <b>${c}</b> in the <code>customers</code> table — which company
-             do they buy for?
-             <div class="hint">Answer with the company name.</div>`,
+    prompt: `Which company does the customer <b>${c}</b> order for?`,
     expected: [DATA.customerCompany[c]],
     ref: `SELECT company FROM customers WHERE first_name || ' ' || last_name = '${c}'`,
   };
@@ -163,10 +157,7 @@ const q2 = (rng) => {
     const st = pick(rng, Object.keys(DATA.statusCount));
     return {
       skill: 'SELECT + WHERE',
-      prompt: `Filter the <code>orders</code> table with a WHERE clause on the status —
-               <code>WHERE status = '${st}'</code> (text values go in single quotes).
-               How many orders currently have that status?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many orders currently have the status <code>'${st}'</code>?`,
       expected: [DATA.statusCount[st]],
       ref: `SELECT COUNT(*) FROM orders WHERE status = '${st}'`,
     };
@@ -175,9 +166,7 @@ const q2 = (rng) => {
     const c = pick(rng, Object.keys(DATA.carrierCount));
     return {
       skill: 'SELECT + WHERE',
-      prompt: `Filter the <code>shipments</code> table with <code>WHERE carrier = '${c}'</code> —
-               how many shipments did that carrier handle?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many shipments did <b>${c}</b> handle?`,
       expected: [DATA.carrierCount[c]],
       ref: `SELECT COUNT(*) FROM shipments WHERE carrier = '${c}'`,
     };
@@ -185,9 +174,7 @@ const q2 = (rng) => {
   const city = pick(rng, Object.keys(DATA.lastNamesByCity));
   return {
     skill: 'SELECT + WHERE',
-    prompt: `Filter the <code>customers</code> table to the people who live in
-             <b>${city}</b> — which customers live there?
-             <div class="hint">Answer with their last names, separated by commas — order doesn't matter.</div>`,
+    prompt: `Who are the customers that live in <b>${city}</b>?`,
     expected: DATA.lastNamesByCity[city].slice(),
     ref: `SELECT last_name FROM customers WHERE city = '${city}'`,
   };
@@ -199,10 +186,7 @@ const q3 = (rng) => {
     const t = pick(rng, Object.keys(DATA.priceAbove));
     return {
       skill: 'WHERE with numbers',
-      prompt: `Which products cost more than $${t}.00? Add a comparison filter —
-               <code>WHERE price &gt; ${t}</code> — to the <code>products</code> table.
-               How many products is that?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many products cost more than $${t}.00?`,
       expected: [DATA.priceAbove[t]],
       ref: `SELECT COUNT(*) FROM products WHERE price > ${t}`,
     };
@@ -211,9 +195,7 @@ const q3 = (rng) => {
     const t = pick(rng, Object.keys(DATA.ordersTotalGeq));
     return {
       skill: 'WHERE with numbers',
-      prompt: `Find the big orders — rows in <code>orders</code> with
-               <code>order_total &gt;= ${t}</code>. How many orders have a total of at least $${t}.00?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many orders are worth at least $${t}.00?`,
       expected: [DATA.ordersTotalGeq[t]],
       ref: `SELECT COUNT(*) FROM orders WHERE order_total >= ${t}`,
     };
@@ -221,10 +203,7 @@ const q3 = (rng) => {
   const t = pick(rng, Object.keys(DATA.baseRateGeq));
   return {
     skill: 'WHERE with numbers',
-    prompt: `Find the well-paid employees — rows in <code>employees</code> where
-             <code>base_rate &gt;= ${t}</code>. How many employees earn at least
-             $${Number(t).toLocaleString()}?
-             <div class="hint">Answer with just the number.</div>`,
+    prompt: `How many employees earn a base rate of at least $${Number(t).toLocaleString()}?`,
     expected: [DATA.baseRateGeq[t]],
     ref: `SELECT COUNT(*) FROM employees WHERE base_rate >= ${t}`,
   };
@@ -235,10 +214,7 @@ const q4 = (rng) => {
   if (v === 'top1') {
     return {
       skill: 'ORDER BY + LIMIT',
-      prompt: `Sort <code>products</code> from most expensive to least —
-               <code>ORDER BY price DESC</code> — and take the first row with <code>LIMIT 1</code>.
-               What is the name of the single most expensive product?
-               <div class="hint">Answer with the product name.</div>`,
+      prompt: `What is the single most expensive product in the catalog?`,
       expected: [DATA.topExpensive[0]],
       ref: `SELECT product_name FROM products ORDER BY price DESC LIMIT 1`,
     };
@@ -246,10 +222,7 @@ const q4 = (rng) => {
   if (v === 'top3') {
     return {
       skill: 'ORDER BY + LIMIT',
-      prompt: `Sort <code>products</code> from most expensive to least and take the top three —
-               <code>ORDER BY price DESC LIMIT 3</code>. What are the names of the
-               3 most expensive products?
-               <div class="hint">Answer with the three names, comma-separated — order doesn't matter.</div>`,
+      prompt: `What are the three most expensive products in the catalog?`,
       expected: DATA.topExpensive.slice(0, 3),
       ref: `SELECT product_name FROM products ORDER BY price DESC LIMIT 3`,
     };
@@ -257,9 +230,7 @@ const q4 = (rng) => {
   if (v === 'cheapest') {
     return {
       skill: 'ORDER BY + LIMIT',
-      prompt: `Sort <code>products</code> from cheapest first — <code>ORDER BY price ASC</code> —
-               and take the first row. What is the name of the cheapest product?
-               <div class="hint">Answer with the product name.</div>`,
+      prompt: `What is the cheapest product in the catalog?`,
       expected: [DATA.cheapestProduct],
       ref: `SELECT product_name FROM products ORDER BY price ASC LIMIT 1`,
     };
@@ -267,11 +238,7 @@ const q4 = (rng) => {
   const cat = pick(rng, Object.keys(DATA.catTopProduct));
   return {
     skill: 'ORDER BY + LIMIT',
-    prompt: `Filter <code>products</code> to the <i>${CATS[cat]}</i> category
-             (<code>WHERE product_category_id = ${cat}</code>), then sort by price, highest first,
-             and take the first row. Which product is the most expensive in that category,
-             and what does it cost?
-             <div class="hint">Answer with both: name, price.</div>`,
+    prompt: `What is the most expensive product in the <i>${CATS[cat]}</i> category, and what does it cost?`,
     expected: DATA.catTopProduct[cat].slice(),
     ref: `SELECT product_name, price FROM products
            WHERE product_category_id = ${cat}
@@ -285,20 +252,15 @@ const q5 = (rng) => {
     const L = pick(rng, Object.keys(DATA.letterCount));
     return {
       skill: 'Text patterns & NULL',
-      prompt: `Find the customers whose <code>last_name</code> starts with the letter “${L}” —
-               in SQL that's <code>WHERE last_name LIKE '${L}%'</code>, where the % matches any
-               continuation. How many customers have a last name starting with ${L}?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many customers have a last name that starts with <b>${L}</b>?`,
       expected: [DATA.letterCount[L]],
       ref: `SELECT COUNT(*) FROM customers WHERE last_name LIKE '${L}%'`,
     };
   }
   return {
     skill: 'Text patterns & NULL',
-    prompt: `Some customers are individuals with no company on file. In SQL that value is
-             <code>NULL</code> — and nothing is ever <code>= NULL</code>; you have to use
-             <code>IS NULL</code>. How many customers have no company on file?
-             <div class="hint">Answer with just the number.</div>`,
+    prompt: `Some customers are individuals rather than companies — the database simply has
+             nothing on file for their employer. How many customers have no company on file?`,
     expected: [DATA.nullCompanyCount],
     ref: `SELECT COUNT(*) FROM customers WHERE company IS NULL`,
   };
@@ -310,10 +272,7 @@ const q6 = (rng) => {
     const st = pick(rng, Object.keys(DATA.statusSum));
     return {
       skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-      prompt: `Add up the value of all <code>${st}</code> orders with <code>SUM(order_total)</code>
-               over the <code>orders</code> table, filtered to <code>status = '${st}'</code>.
-               What is the total value of those orders, in dollars?
-               <div class="hint">Answer with just the number, e.g., 1234.56.</div>`,
+      prompt: `What is the combined value, in dollars, of all <code>${st}</code> orders?`,
       expected: [DATA.statusSum[st]],
       ref: `SELECT SUM(order_total) FROM orders WHERE status = '${st}'`,
     };
@@ -322,10 +281,7 @@ const q6 = (rng) => {
     const c = pick(rng, Object.keys(DATA.avgCat));
     return {
       skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-      prompt: `What does Proprint charge on average in the <i>${CATS[c]}</i> category? Use
-               <code>AVG(price)</code> over <code>products</code> filtered to
-               <code>product_category_id = ${c}</code>, rounded to cents.
-               <div class="hint">Answer with just the number, rounded to 2 decimals.</div>`,
+      prompt: `What is the average price of products in the <i>${CATS[c]}</i> category, rounded to cents?`,
       expected: [DATA.avgCat[c]],
       ref: `SELECT ROUND(AVG(price), 2) FROM products WHERE product_category_id = ${c}`,
     };
@@ -334,10 +290,7 @@ const q6 = (rng) => {
     const s = pick(rng, Object.keys(DATA.maxSup));
     return {
       skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-      prompt: `<i>${SUPNAME[s]}</i> is supplier number ${s}. Using <code>MAX(price)</code> over the
-               <code>products</code> table filtered to <code>supplier_id = ${s}</code>, what is the
-               highest price among that supplier's products?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `What is the highest price among <i>${SUPNAME[s]}</i>'s products?`,
       expected: [DATA.maxSup[s]],
       ref: `SELECT MAX(price) FROM products WHERE supplier_id = ${s}`,
     };
@@ -345,10 +298,7 @@ const q6 = (rng) => {
   const y = pick(rng, Object.keys(DATA.yearOrders));
   return {
     skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-    prompt: `Count the <code>orders</code> placed in <b>${y}</b> with <code>COUNT(*)</code>.
-             The dates are stored as text like '${y}-07-08', so the easiest filter is
-             <code>WHERE order_date LIKE '${y}%'</code>. How many orders were placed in ${y}?
-             <div class="hint">Answer with just the number.</div>`,
+    prompt: `How many orders were placed in <b>${y}</b>?`,
     expected: [DATA.yearOrders[y]],
     ref: `SELECT COUNT(*) FROM orders WHERE order_date LIKE '${y}%'`,
   };
@@ -360,10 +310,8 @@ const q7 = (rng) => {
     const [who, n] = DATA.sourceTop;
     return {
       skill: 'GROUP BY',
-      prompt: `Group the <code>orders</code> table by <code>source</code> and count each group
-               (<code>GROUP BY source</code> with <code>COUNT(*)</code>). Which source — phone or
-               website — accounts for more orders, and how many orders is that?
-               <div class="hint">Answer with both: source, count.</div>`,
+      prompt: `Do customers order more by phone or through the website? Which source accounts for
+               more orders, and how many orders is that?`,
       expected: [who, n],
       ref: `SELECT source, COUNT(*) FROM orders GROUP BY source ORDER BY COUNT(*) DESC LIMIT 1`,
     };
@@ -372,10 +320,8 @@ const q7 = (rng) => {
     const [st, total] = DATA.statusTopValue;
     return {
       skill: 'GROUP BY',
-      prompt: `Group <code>orders</code> by <code>status</code> and total each group with
-               <code>SUM(order_total)</code>. Which status has the highest total order value,
-               and what is that total?
-               <div class="hint">Answer with both: status, dollar amount.</div>`,
+      prompt: `Which order status holds the most total value across all orders, and what is that
+               value in dollars?`,
       expected: [st, total],
       ref: `SELECT status, ROUND(SUM(order_total), 2) AS total_value
               FROM orders GROUP BY status ORDER BY SUM(order_total) DESC LIMIT 1`,
@@ -384,9 +330,8 @@ const q7 = (rng) => {
   const [cid, n] = DATA.catMostProducts;
   return {
     skill: 'GROUP BY',
-    prompt: `Group <code>products</code> by <code>product_category_id</code> and count each
-             group. Which category id contains the most products, and how many products is that?
-             <div class="hint">Answer with both: category id, count.</div>`,
+    prompt: `Which product category — identified by its <code>product_category_id</code> —
+             carries the most products, and how many products is that?`,
     expected: [cid, n],
     ref: `SELECT product_category_id, COUNT(*) FROM products
             GROUP BY product_category_id ORDER BY COUNT(*) DESC LIMIT 1`,
@@ -399,11 +344,7 @@ const q8 = (rng) => {
     const p = pick(rng, Object.keys(DATA.productSupplier));
     return {
       skill: 'JOIN',
-      prompt: `Every product belongs to a supplier — the product's <code>supplier_id</code>
-               matches <code>suppliers.id</code>. Join <code>products</code> with
-               <code>suppliers</code> to find out: who supplies the product
-               <b>${p}</b>?
-               <div class="hint">Answer with the supplier name.</div>`,
+      prompt: `Who manufactures and supplies the product <b>${p}</b> for Proprint?`,
       expected: [DATA.productSupplier[p]],
       ref: `SELECT s.supplier_name
               FROM products p JOIN suppliers s ON s.id = p.supplier_id
@@ -414,11 +355,7 @@ const q8 = (rng) => {
     const city = pick(rng, Object.keys(DATA.ordersByCity));
     return {
       skill: 'JOIN',
-      prompt: `Join <code>orders</code> with <code>customers</code> —
-               <code>orders.customer_id</code> matches <code>customers.id</code> — and keep only
-               customers who live in <b>${city}</b>. How many orders were placed by
-               people from ${city}?
-               <div class="hint">Answer with just the number.</div>`,
+      prompt: `How many orders were placed by customers who live in <b>${city}</b>?`,
       expected: [DATA.ordersByCity[city]],
       ref: `SELECT COUNT(*) FROM orders o JOIN customers c ON c.id = o.customer_id
              WHERE c.city = '${city}'`,
@@ -427,10 +364,7 @@ const q8 = (rng) => {
   const oid = pick(rng, Object.keys(DATA.repByOrder));
   return {
     skill: 'JOIN',
-    prompt: `Join <code>orders</code> with <code>employees</code> —
-             <code>orders.salesperson_id</code> matches <code>employees.id</code> — to find the
-             sales rep. Which employee took order <b>#${oid}</b>?
-             <div class="hint">Answer with their first and last name.</div>`,
+    prompt: `Which employee took order <b>#${oid}</b>?`,
     expected: [DATA.repByOrder[oid]],
     ref: `SELECT e.first_name || ' ' || e.last_name AS rep
             FROM orders o JOIN employees e ON e.id = o.salesperson_id
@@ -444,13 +378,8 @@ const q9 = (rng) => {
     const [who, total] = DATA.repTopValue2025;
     return {
       skill: 'JOIN + GROUP BY',
-      prompt: `Sales leaderboard: join <code>orders</code> with <code>employees</code>
-               (<code>salesperson_id</code> matches <code>employees.id</code>), keep only
-               <b>non-cancelled</b> orders (<code>status != 'cancelled'</code>) from
-               <b>2025</b> (<code>order_date LIKE '2025%'</code>), group by the rep, and total each
-               rep's <code>order_total</code>. Which sales rep generated the most order value
-               in 2025, and how much was it?
-               <div class="hint">Answer with both: first and last name, dollar amount.</div>`,
+      prompt: `Which sales rep generated the most order value during <b>2025</b> (excluding cancelled
+               orders), and what was that value in dollars?`,
       expected: [who, total],
       ref: `SELECT e.first_name || ' ' || e.last_name AS rep, ROUND(SUM(o.order_total), 2) AS total_value
               FROM orders o JOIN employees e ON e.id = o.salesperson_id
@@ -463,11 +392,8 @@ const q9 = (rng) => {
     const [who, n] = DATA.repMostOrders2026;
     return {
       skill: 'JOIN + GROUP BY',
-      prompt: `Join <code>orders</code> with <code>employees</code>
-               (<code>salesperson_id</code> matches <code>employees.id</code>), keep only
-               <b>non-cancelled</b> orders from <b>2026</b>, group by the rep, and count each
-               rep's orders. Which sales rep took the most orders in 2026, and how many was that?
-               <div class="hint">Answer with both: first and last name, count.</div>`,
+      prompt: `Which sales rep took the most orders during <b>2026</b> (excluding cancelled orders),
+               and how many orders did they take?`,
       expected: [who, n],
       ref: `SELECT e.first_name || ' ' || e.last_name AS rep, COUNT(*) AS order_count
               FROM orders o JOIN employees e ON e.id = o.salesperson_id
@@ -479,11 +405,8 @@ const q9 = (rng) => {
   const [st, n] = DATA.stateTopOrders;
   return {
     skill: 'JOIN + GROUP BY',
-    prompt: `Join <code>orders</code> with <code>customers</code> (<code>customer_id</code>
-             matches <code>customers.id</code>), <b>exclude cancelled orders</b>, group by
-             <code>customers.state</code>, and count the orders from each state. Which state
-             placed the most orders, and how many was that?
-             <div class="hint">Answer with both: two-letter state, count.</div>`,
+    prompt: `Which state placed the most orders (excluding cancelled ones), and how many orders
+             came from there?`,
     expected: [st, n],
     ref: `SELECT c.state, COUNT(*) AS order_count
             FROM orders o JOIN customers c ON c.id = o.customer_id
@@ -500,14 +423,9 @@ const q10 = (rng) => {
     const [cat, rev] = DATA.catTopRevenue[y];
     return {
       skill: 'Multi-join + GROUP BY (grand finale)',
-      prompt: `The capstone — revenue by product category for <b>${y}</b>. Join
-               <code>order_products</code> → <code>products</code> →
-               <code>product_categories</code>, plus <code>orders</code> (join it to
-               <code>order_products</code> on <code>order_id</code>) so you can keep only
-               <b>non-cancelled</b> orders from <b>${y}</b>. Revenue means
-               <code>SUM(unit_price * qty)</code> per category. Which product category
-               generated the most revenue in ${y}, and how much was it?
-               <div class="hint">Answer with both: category name, dollar amount.</div>`,
+      prompt: `The capstone: revenue by product category. Revenue means the money brought in by
+               line items — unit price &times; quantity sold. Which product category brought in the
+               most revenue during <b>${y}</b> (excluding cancelled orders), and how much was it?`,
       expected: [cat, rev],
       ref: `SELECT pc.category_name, ROUND(SUM(op.unit_price * op.qty), 2) AS revenue
               FROM orders o
@@ -523,14 +441,9 @@ const q10 = (rng) => {
   const [cat, units] = DATA.catTopUnitsBySource[src];
   return {
     skill: 'Multi-join + GROUP BY (grand finale)',
-    prompt: `The capstone — units sold by product category for <b>${src}</b> orders. Join
-             <code>order_products</code> → <code>products</code> →
-             <code>product_categories</code>, plus <code>orders</code> (join it to
-             <code>order_products</code> on <code>order_id</code>) so you can keep only
-             <b>non-cancelled</b> orders placed via <b>${src}</b>. Units means
-             <code>SUM(qty)</code> per category. Which product category sold the most units in
-             ${src} orders, and how many units?
-             <div class="hint">Answer with both: category name, count.</div>`,
+    prompt: `The capstone: units sold by product category. Which product category sold the most
+             units across <b>${src}</b> orders (excluding cancelled orders), and how many units
+             was that?`,
     expected: [cat, units],
     ref: `SELECT pc.category_name, SUM(op.qty) AS units_sold
             FROM orders o
