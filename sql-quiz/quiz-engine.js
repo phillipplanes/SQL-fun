@@ -157,7 +157,7 @@ const q2 = (rng) => {
     const st = pick(rng, Object.keys(DATA.statusCount));
     return {
       skill: 'SELECT + WHERE',
-      prompt: `How many orders currently have the status <code>'${st}'</code>?`,
+      prompt: `How many orders have the status <code>'${st}'</code>?`,
       expected: [DATA.statusCount[st]],
       ref: `SELECT COUNT(*) FROM orders WHERE status = '${st}'`,
     };
@@ -174,7 +174,7 @@ const q2 = (rng) => {
   const city = pick(rng, Object.keys(DATA.lastNamesByCity));
   return {
     skill: 'SELECT + WHERE',
-    prompt: `Who are the customers that live in <b>${city}</b>?`,
+    prompt: `Which customers live in <b>${city}</b>?`,
     expected: DATA.lastNamesByCity[city].slice(),
     ref: `SELECT last_name FROM customers WHERE city = '${city}'`,
   };
@@ -259,8 +259,7 @@ const q5 = (rng) => {
   }
   return {
     skill: 'Text patterns & NULL',
-    prompt: `Some customers are individuals rather than companies — the database simply has
-             nothing on file for their employer. How many customers have no company on file?`,
+    prompt: `How many customers have no company on file?`,
     expected: [DATA.nullCompanyCount],
     ref: `SELECT COUNT(*) FROM customers WHERE company IS NULL`,
   };
@@ -272,7 +271,7 @@ const q6 = (rng) => {
     const st = pick(rng, Object.keys(DATA.statusSum));
     return {
       skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-      prompt: `What is the combined value, in dollars, of all <code>${st}</code> orders?`,
+      prompt: `What is the total value of all <code>${st}</code> orders?`,
       expected: [DATA.statusSum[st]],
       ref: `SELECT SUM(order_total) FROM orders WHERE status = '${st}'`,
     };
@@ -281,7 +280,7 @@ const q6 = (rng) => {
     const c = pick(rng, Object.keys(DATA.avgCat));
     return {
       skill: 'Aggregates (SUM/COUNT/AVG/MAX)',
-      prompt: `What is the average price of products in the <i>${CATS[c]}</i> category, rounded to cents?`,
+      prompt: `What is the average price of products in the <i>${CATS[c]}</i> category?`,
       expected: [DATA.avgCat[c]],
       ref: `SELECT ROUND(AVG(price), 2) FROM products WHERE product_category_id = ${c}`,
     };
@@ -310,8 +309,7 @@ const q7 = (rng) => {
     const [who, n] = DATA.sourceTop;
     return {
       skill: 'GROUP BY',
-      prompt: `Do customers order more by phone or through the website? Which source accounts for
-               more orders, and how many orders is that?`,
+      prompt: `Which order source has more orders, and how many orders is that?`,
       expected: [who, n],
       ref: `SELECT source, COUNT(*) FROM orders GROUP BY source ORDER BY COUNT(*) DESC LIMIT 1`,
     };
@@ -320,8 +318,7 @@ const q7 = (rng) => {
     const [st, total] = DATA.statusTopValue;
     return {
       skill: 'GROUP BY',
-      prompt: `Which order status holds the most total value across all orders, and what is that
-               value in dollars?`,
+      prompt: `Which order status has the highest total value, and what is that total?`,
       expected: [st, total],
       ref: `SELECT status, ROUND(SUM(order_total), 2) AS total_value
               FROM orders GROUP BY status ORDER BY SUM(order_total) DESC LIMIT 1`,
@@ -330,8 +327,7 @@ const q7 = (rng) => {
   const [cid, n] = DATA.catMostProducts;
   return {
     skill: 'GROUP BY',
-    prompt: `Which product category — identified by its <code>product_category_id</code> —
-             carries the most products, and how many products is that?`,
+    prompt: `Which product category has the most products, and how many is that <i>(report the category id)</i>?`,
     expected: [cid, n],
     ref: `SELECT product_category_id, COUNT(*) FROM products
             GROUP BY product_category_id ORDER BY COUNT(*) DESC LIMIT 1`,
@@ -344,7 +340,7 @@ const q8 = (rng) => {
     const p = pick(rng, Object.keys(DATA.productSupplier));
     return {
       skill: 'JOIN',
-      prompt: `Who manufactures and supplies the product <b>${p}</b> for Proprint?`,
+      prompt: `Who supplies the product <b>${p}</b>?`,
       expected: [DATA.productSupplier[p]],
       ref: `SELECT s.supplier_name
               FROM products p JOIN suppliers s ON s.id = p.supplier_id
@@ -378,12 +374,11 @@ const q9 = (rng) => {
     const [who, total] = DATA.repTopValue2025;
     return {
       skill: 'JOIN + GROUP BY',
-      prompt: `Which sales rep generated the most order value during <b>2025</b> (excluding cancelled
-               orders), and what was that value in dollars?`,
+      prompt: `Which sales rep generated the most order value in <b>2025</b>, and how much was it?`,
       expected: [who, total],
       ref: `SELECT e.first_name || ' ' || e.last_name AS rep, ROUND(SUM(o.order_total), 2) AS total_value
               FROM orders o JOIN employees e ON e.id = o.salesperson_id
-             WHERE o.status != 'cancelled' AND o.order_date LIKE '2025%'
+             WHERE o.order_date LIKE '2025%'
              GROUP BY o.salesperson_id
              ORDER BY SUM(o.order_total) DESC LIMIT 1`,
     };
@@ -392,12 +387,11 @@ const q9 = (rng) => {
     const [who, n] = DATA.repMostOrders2026;
     return {
       skill: 'JOIN + GROUP BY',
-      prompt: `Which sales rep took the most orders during <b>2026</b> (excluding cancelled orders),
-               and how many orders did they take?`,
+      prompt: `Which sales rep took the most orders in <b>2026</b>, and how many was that?`,
       expected: [who, n],
       ref: `SELECT e.first_name || ' ' || e.last_name AS rep, COUNT(*) AS order_count
               FROM orders o JOIN employees e ON e.id = o.salesperson_id
-             WHERE o.status != 'cancelled' AND o.order_date LIKE '2026%'
+             WHERE o.order_date LIKE '2026%'
              GROUP BY o.salesperson_id
              ORDER BY COUNT(*) DESC LIMIT 1`,
     };
@@ -405,12 +399,10 @@ const q9 = (rng) => {
   const [st, n] = DATA.stateTopOrders;
   return {
     skill: 'JOIN + GROUP BY',
-    prompt: `Which state placed the most orders (excluding cancelled ones), and how many orders
-             came from there?`,
+    prompt: `Which state placed the most orders, and how many orders was that?`,
     expected: [st, n],
     ref: `SELECT c.state, COUNT(*) AS order_count
             FROM orders o JOIN customers c ON c.id = o.customer_id
-           WHERE o.status != 'cancelled'
            GROUP BY c.state
            ORDER BY COUNT(*) DESC LIMIT 1`,
   };
@@ -423,16 +415,14 @@ const q10 = (rng) => {
     const [cat, rev] = DATA.catTopRevenue[y];
     return {
       skill: 'Multi-join + GROUP BY (grand finale)',
-      prompt: `The capstone: revenue by product category. Revenue means the money brought in by
-               line items — unit price &times; quantity sold. Which product category brought in the
-               most revenue during <b>${y}</b> (excluding cancelled orders), and how much was it?`,
+      prompt: `Which product category made the most money in <b>${y}</b>, and how much was it?`,
       expected: [cat, rev],
       ref: `SELECT pc.category_name, ROUND(SUM(op.unit_price * op.qty), 2) AS revenue
               FROM orders o
               JOIN order_products op ON op.order_id = o.id
               JOIN products p         ON p.id = op.product_id
               JOIN product_categories pc ON pc.id = p.product_category_id
-             WHERE o.status != 'cancelled' AND o.order_date LIKE '${y}%'
+             WHERE o.order_date LIKE '${y}%'
              GROUP BY pc.id
              ORDER BY SUM(op.unit_price * op.qty) DESC LIMIT 1`,
     };
@@ -441,16 +431,14 @@ const q10 = (rng) => {
   const [cat, units] = DATA.catTopUnitsBySource[src];
   return {
     skill: 'Multi-join + GROUP BY (grand finale)',
-    prompt: `The capstone: units sold by product category. Which product category sold the most
-             units across <b>${src}</b> orders (excluding cancelled orders), and how many units
-             was that?`,
+    prompt: `Which product category sold the most units in <b>${src}</b> orders, and how many units was that?`,
     expected: [cat, units],
     ref: `SELECT pc.category_name, SUM(op.qty) AS units_sold
             FROM orders o
             JOIN order_products op ON op.order_id = o.id
             JOIN products p         ON p.id = op.product_id
             JOIN product_categories pc ON pc.id = p.product_category_id
-           WHERE o.source = '${src}' AND o.status != 'cancelled'
+           WHERE o.source = '${src}'
            GROUP BY pc.id
            ORDER BY SUM(op.qty) DESC LIMIT 1`,
   };
