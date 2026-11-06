@@ -431,7 +431,7 @@ const q10 = (rng) => {
   const [cat, units] = DATA.catTopUnitsBySource[src];
   return {
     skill: 'Multi-join + GROUP BY (grand finale)',
-    prompt: `Which product category sold the most units in <b>${src}</b> orders, and how many units was that?`,
+    prompt: `Which product category sold the most items in <b>${src}</b> orders, and how many items was that?`,
     expected: [cat, units],
     ref: `SELECT pc.category_name, SUM(op.qty) AS units_sold
             FROM orders o
