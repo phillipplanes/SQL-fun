@@ -85,6 +85,23 @@
     font-family: 'Cascadia Code', Consolas, monospace; font-size: .78rem; line-height: 1.6;
     white-space: pre-wrap; color: var(--muted); margin-top: 8px; max-height: 420px; overflow-y: auto;
   }
+  .erd { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 12px; margin-top: 4px; }
+  .erdtable { background: #180830; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .erdtitle {
+    background: var(--panel2); border-bottom: 1px solid var(--border); padding: 8px 12px;
+    font-weight: 800; font-size: .95rem;
+  }
+  .erdtitle .count { color: var(--muted); font-weight: 400; font-size: .75rem; margin-left: 6px; }
+  .erdfield {
+    padding: 4px 12px; font-family: 'Cascadia Code', Consolas, monospace; font-size: .8rem;
+    border-bottom: 1px solid rgba(63, 35, 112, .35); color: var(--text);
+  }
+  .erdfield:last-child { border-bottom: none; }
+  .erdfield .pk { color: var(--warn); margin-right: 3px; }
+  .erdfield .fk { color: var(--accent2); margin-right: 3px; }
+  .erdfield .ref { color: var(--hpu-glow); font-size: .72rem; }
+  .erdfield .enum { color: var(--muted); font-size: .7rem; display: block; padding-left: 14px; }
+  .erdfield.plain { color: var(--muted); }
   .finalscore { font-size: 3rem; font-weight: 900; text-align: center; margin: 8px 0; text-shadow: 0 0 34px rgba(138, 92, 214, .8); }
   .hidden { display: none !important; }
   @media (max-width: 640px) { h1 { font-size: 1.5rem; } .prompt { font-size: 1rem; } }
@@ -156,12 +173,14 @@
     <div class="card">
       <div class="row" style="justify-content:space-between;">
         <div class="skill" style="margin:0;">Schema reference</div>
-        <span class="pill" id="tablePills" style="color:var(--accent2);"></span>
+        <span class="pill" style="color:var(--muted);">🔑 primary key &nbsp;·&nbsp; 🔗 foreign key → the value it matches</span>
       </div>
-      <details open>
-        <summary>Show table definitions</summary>
-        <div class="schema" id="schemaBox">Loading schema…</div>
-      </details>
+      <div class="erd" id="erdBox"></div>
+      <p class="hint" style="margin-top:10px;">The <b>orders</b> pipeline in one line:
+        <code>customers</code> and <code>employees</code> place and take <code>orders</code> →
+        orders contain <code>order_products</code> line items that point at <code>products</code>
+        from <code>suppliers</code> and <code>product_categories</code> →
+        <code>shipments</code> track delivery per order.</p>
       <details>
         <summary>Get the data file (proprint.sql)</summary>
         <p class="hint">Load <a href="proprint.sql" target="_blank">proprint.sql</a> into your SQL
@@ -323,19 +342,67 @@ function renderResultTable(res, maxRows = 60) {
   return html;
 }
 
-async function loadSchemaPanel() {
-  try {
-    const r = await fetch('proprint.sql');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const text = await r.text();
-    const cut = text.indexOf('-- DUMMY DATA');
-    const ddl = text.slice(0, cut) || text;
-    $('schemaBox').textContent = ddl;
-    const names = [...ddl.matchAll(/CREATE TABLE (\w+)/g)].map(m => m[1]);
-    $('tablePills').textContent = names.join(' · ');
-  } catch (e) {
-    $('schemaBox').textContent = 'Could not load proprint.sql — open it directly: proprint.sql';
-    $('tablePills').textContent = '';
+/* ---- Entity-relationship view of the Proprint database ---- */
+const ERD = [
+  { name: 'customers', rows: 30, fields: [
+    ['id', 'pk'], ['first_name'], ['last_name'], ['company'], ['address'], ['city'],
+    ['state'], ['zip'], ['phone'], ['email'], ['created_on'],
+  ]},
+  { name: 'employees', rows: 18, fields: [
+    ['id', 'pk'], ['first_name'], ['last_name'], ['email'], ['phone'], ['base_rate'],
+    ['commission_level'], ['status', null, 'active / terminated'], ['start_date'], ['termination_date'],
+  ]},
+  { name: 'suppliers', rows: 10, fields: [
+    ['id', 'pk'], ['supplier_name'], ['contact_name'], ['contact_phone'], ['contact_email'],
+    ['address'], ['city'], ['state'], ['zip'],
+  ]},
+  { name: 'product_categories', rows: 7, fields: [
+    ['id', 'pk'], ['category_name'], ['category_description'],
+  ]},
+  { name: 'products', rows: 32, fields: [
+    ['id', 'pk'], ['product_name'], ['description'], ['price'],
+    ['supplier_id', 'fk', 'suppliers.id'],
+    ['product_category_id', 'fk', 'product_categories.id'],
+  ]},
+  { name: 'orders', rows: 45, fields: [
+    ['id', 'pk'],
+    ['customer_id', 'fk', 'customers.id'],
+    ['order_date'], ['order_total'],
+    ['salesperson_id', 'fk', 'employees.id'],
+    ['source', null, "'phone' / 'website'"],
+    ['status', null, "'pending' / 'in_production' / 'shipped' / 'delivered' / 'cancelled'"],
+  ]},
+  { name: 'order_products', rows: 87, fields: [
+    ['id', 'pk'],
+    ['order_id', 'fk', 'orders.id'],
+    ['product_id', 'fk', 'products.id'],
+    ['unit_price'], ['qty'],
+    ['employee_id', 'fk', 'employees.id'],
+  ]},
+  { name: 'shipments', rows: 36, fields: [
+    ['id', 'pk'],
+    ['order_id', 'fk', 'orders.id'],
+    ['carrier'], ['tracking_number'], ['date_shipped'], ['date_received'],
+    ['status', null, "'pre_transit' / 'in_transit' / 'delivered' / 'exception'"],
+  ]},
+];
+
+function renderErd() {
+  const box = $('erdBox');
+  if (box.childElementCount) return;
+  for (const t of ERD) {
+    let fieldsHtml = '';
+    for (const [fname, kind, note] of t.fields) {
+      const marker = kind === 'pk' ? '<span class="pk">🔑</span>'
+                   : kind === 'fk' ? '<span class="fk">🔗</span>' : '<span class="pk" style="visibility:hidden">🔑</span>';
+      const ref = kind === 'fk' ? ` <span class="ref">→ ${note}</span>` : '';
+      const enumNote = kind === null && note ? `\n<span class="enum">${note}</span>` : '';
+      fieldsHtml += `<div class="erdfield">${marker}${fname}${ref}${enumNote}</div>`;
+    }
+    const card = document.createElement('div');
+    card.className = 'erdtable';
+    card.innerHTML = `<div class="erdtitle">${t.name}<span class="count">${t.rows} rows</span></div>${fieldsHtml}`;
+    box.appendChild(card);
   }
 }
 
@@ -361,7 +428,7 @@ function showQuiz() {
   if (curQ === -1) curQ = 9;
   renderNav();
   renderQuestion();
-  loadSchemaPanel();
+  renderErd();
 }
 
 function renderNav() {
