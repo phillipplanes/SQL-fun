@@ -70,7 +70,9 @@ thresholds to look up. Same name always regenerates the same quiz (it's the seed
   for practicing locally), `sql-quiz/schema.sql` (Supabase table + passcode-gated functions).
   Edit the question builders in `quiz-engine.js` to change what the class is asked; expected
   answers live in the `DATA` object (verified against the data by the test harness pattern in
-  git history).
+  git history). **When you change `quiz-engine.js`, bump the `?v=` number in its script tag in
+  both `index.html` and `dashboard.html`** (and the dashboard footer's build tag) — it cache-busts
+  browsers so nobody runs a stale copy of the new/deployed engine mix.
 
 ---
 

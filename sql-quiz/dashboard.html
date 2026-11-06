@@ -155,11 +155,13 @@
   <p class="foot">
     Submissions are read through a passcode-gated Supabase function — students can submit but cannot read
     anyone's answers (including the expected ones, which are also not exposed to the student view).<br>
+    dashboard build <b id="buildTag">v7</b> — if this doesn't say v7 after a reload,
+    hard-refresh (Cmd/Ctrl+Shift+R) to clear the old page.<br>
     <a href="index.html">← back to the quiz</a></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="quiz-engine.js"></script>
+<script src="quiz-engine.js?v=7"></script>
 <script>
 'use strict';
 
