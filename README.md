@@ -52,24 +52,25 @@ aggregates → GROUP BY → JOIN → JOIN + GROUP BY → multi-join + GROUP BY �
 seeded from the student's name**, so each person gets different products, cities, statuses and
 thresholds to look up. Same name always regenerates the same quiz (it's the seed).
 
-- Each question is a business question with a **specific, checkable answer** (a number, a name,
-  or a short comma-separated list). Students run their SQL against `sql-quiz/proprint.sql` in
-  their own SQLite client, then type the answer their query returns (and optionally paste the SQL
-  they used — the instructor sees both).
+- Each question shows the **exact result the query must return** (as a data table) and the student
+  writes the query: "Write a query that returns exactly this result." The app runs their SQL
+  in-browser (SQLite via WebAssembly from a CDN) and tells them if the values match — row order,
+  column order and column names don't matter; only the returned values do. Queries that don't
+  read from a real table (e.g., retyping the shown result with UNIONs of literals) are rejected.
 - Pressing **Submit** inserts one row in the `sql_quiz_submissions` Supabase table: the student's
-  name, their questions, their answers, the SQL, the expected answer, and a computed
-  **correct/incorrect flag per question** — grading is a glance at the dashboard. Checks are
-  tolerant of formatting ($, thousands commas, case, order of values) but not of wrong values.
+  name, their questions, their query per question with attempts and a **solved flag**, plus the
+  expected result for grading disputes — the dashboard shows scores at a glance.
 - **Answer key:** open `/sql-quiz/dashboard.html` (bookmark it — it's not linked from any
   student-facing page), enter your instructor passcode, and use the "Answer key" card: type a
-  student's name exactly as they entered it to see their questions with the correct answer and
-  a reference query for each.
+  student's name exactly as they entered it to see their questions with a reference query
+  for each.
 - Files: `sql-quiz/index.html` (student app), `sql-quiz/dashboard.html` (instructor app —
-  progress/answers plus answer key), `sql-quiz/quiz-engine.js` (shared question engine),
-  `sql-quiz/proprint.sql` (schema + dummy data — students load this into a SQLite client),
-  `sql-quiz/schema.sql` (Supabase table + passcode-gated functions). Edit the question builders
-  in `quiz-engine.js` to change what the class is asked; expected answers live in the
-  `DATA` object (verified against the data by the test harness pattern in git history).
+  progress/answers plus answer key), `sql-quiz/quiz-engine.js` (shared question engine +
+  result grading), `sql-quiz/proprint.sql` (schema + dummy data, fetched by the app and handy
+  for practicing locally), `sql-quiz/schema.sql` (Supabase table + passcode-gated functions).
+  Edit the question builders in `quiz-engine.js` to change what the class is asked; expected
+  answers live in the `DATA` object (verified against the data by the test harness pattern in
+  git history).
 
 ---
 
@@ -136,16 +137,17 @@ See `econ3120-value-chain/README.md` for full details.
 
 ## 📝 Running the SQL practice quiz
 
-1. Students open `/sql-quiz/`, type their name twice, and get their 10 seeded questions
-   (answerable in one sitting or across sessions — drafts are saved in their browser). They
-   load `proprint.sql` into a SQLite client (e.g., DB Browser for SQLite), write their query,
-   and enter the answer it returns.
-2. They press **Submit my answers** — one row lands in `sql_quiz_submissions` with their
-   questions, answers, SQL, expected answers, and a computed correct flag per question.
+1. Students open `/sql-quiz/`, type their name, and get their 10 seeded questions. Each question
+   shows the result the query must return; the student writes the query (in the page or in their
+   own SQLite client with `proprint.sql`), presses **Run & check**, and iterates until it matches.
+   Progress and queries are saved in their browser across sessions.
+2. On the last question they press **Submit my answers** — one row lands in `sql_quiz_submissions`
+   with their questions, their query per question with attempts and a solved flag, and the
+   expected result for each question.
 3. To grade, open `/sql-quiz/dashboard.html` (bookmark it — no student-facing page links to
    it) — enter your instructor passcode for a live table of every student (score, attempts,
-   submission time), a per-question breakdown of their answers with expected answers and
-   correct flags, earlier attempts, a CSV export, a reset button, and the answer-key card
+   submission time), a per-question breakdown of their queries with expected results and
+   solved flags, earlier attempts, a CSV export, a reset button, and the answer-key card
    for disputes (enter the student's name exactly as they typed it).
 
 ## ✏️ Customizing

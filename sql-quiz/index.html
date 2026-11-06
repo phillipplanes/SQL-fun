@@ -36,18 +36,14 @@
   h1 { font-size: 1.9rem; margin-top: 26px; letter-spacing: 1px; }
   h1 .accent { color: var(--hpu-glow); }
   .subtitle { color: var(--muted); margin-top: 6px; line-height: 1.5; }
-  .card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-    padding: 22px; margin-top: 16px;
-  }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-top: 16px; }
   label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 6px; }
   input, textarea {
     width: 100%; padding: 12px 14px; font-size: 1rem; border-radius: 10px;
     border: 1px solid var(--border); background: #180830; color: var(--text); outline: none;
   }
-  textarea { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; min-height: 110px; resize: vertical; line-height: 1.5; }
+  textarea { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; min-height: 130px; resize: vertical; line-height: 1.5; }
   input:focus, textarea:focus { border-color: var(--hpu-glow); }
-  input#answerInput { font-size: 1.08rem; font-weight: 700; }
   button {
     cursor: pointer; border: none; border-radius: 10px; font-weight: 700;
     padding: 12px 20px; font-size: 1rem; color: #fff;
@@ -60,36 +56,28 @@
   button.ghost { background: var(--panel2); border: 1px solid var(--border); }
   button.big { width: 100%; padding: 15px; font-size: 1.1rem; margin-top: 18px; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .pill {
-    display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: .8rem;
-    background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
-  }
+  .pill { display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: .8rem; background: var(--panel2); color: var(--muted); border: 1px solid var(--border); }
   .pill.ok { color: var(--accent2); border-color: var(--accent2); }
   .pill.cur { color: #fff; border-color: var(--hpu-glow); background: var(--hpu); }
   .qnav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
-  .qnav button {
-    padding: 8px 0; width: 44px; font-size: .95rem; background: var(--panel2); border: 1px solid var(--border);
-  }
+  .qnav button { padding: 8px 0; width: 44px; font-size: .95rem; background: var(--panel2); border: 1px solid var(--border); }
   .qnav button.done { color: var(--accent2); border-color: var(--accent2); }
   .qnav button.cur { background: var(--hpu); border-color: var(--hpu-glow); }
   .skill { color: var(--accent2); font-weight: 700; font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
   .prompt { font-size: 1.12rem; line-height: 1.65; font-weight: 600; }
-  .prompt code, .note code, a {
-    background: #180830; border: 1px solid var(--border); border-radius: 6px;
-    padding: 1px 7px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: .92em;
-  }
+  .prompt code, .note code, a { background: #180830; border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: .92em; }
   a { color: var(--accent2); text-decoration: none; }
   .hint { color: var(--muted); font-size: .85rem; margin-top: 12px; line-height: 1.55; }
   .feedback { margin-top: 14px; padding: 14px 16px; border-radius: 10px; line-height: 1.55; font-size: .95rem; border: 1px solid; }
   .feedback.good { border-color: var(--accent2); background: rgba(41, 211, 165, .08); color: var(--accent2); }
   .feedback.bad  { border-color: var(--danger); background: rgba(255, 84, 112, .08); color: #ff9bb0; }
   .feedback.info { border-color: var(--border); background: var(--panel2); color: var(--muted); }
-  .keyref {
-    margin-top: 10px; padding: 12px; background: #180830; border-radius: 8px;
-    font-family: 'Cascadia Code', Consolas, monospace; font-size: .85rem; color: #fff;
-    white-space: pre-wrap; border: 1px solid var(--border);
-  }
-  .expected { color: var(--accent2); font-weight: 800; }
+  .resulthead { color: var(--accent2); font-weight: 700; font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; margin-top: 16px; }
+  table.result { border-collapse: collapse; margin-top: 8px; font-size: .85rem; }
+  table.result th, table.result td { padding: 5px 10px; border: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  table.result th { background: var(--panel2); color: var(--hpu-glow); font-family: 'Cascadia Code', Consolas, monospace; font-weight: 400; }
+  table.result td { background: #180830; }
+  .resultwrap { overflow-x: auto; max-height: 300px; overflow-y: auto; margin-top: 2px; }
   details { margin-top: 10px; }
   details summary { cursor: pointer; color: var(--accent2); font-weight: 700; padding: 8px 0; }
   .schema {
@@ -131,7 +119,7 @@
         <p class="subtitle" id="who">—</p>
       </div>
       <div style="text-align:right;">
-        <span class="pill" id="answeredPill">0 answered</span>
+        <span class="pill" id="answeredPill">0 solved</span>
       </div>
     </div>
 
@@ -140,18 +128,23 @@
     <div class="card">
       <div class="skill" id="qSkill"></div>
       <div class="prompt" id="qPrompt"></div>
+      <div class="hint" id="qNote"></div>
+      <div class="resulthead" id="qResHead">Your query must return exactly this result:</div>
+      <div class="resultwrap" id="qExpected"></div>
     </div>
 
     <div class="card">
-      <label for="answerInput">Your answer</label>
-      <input id="answerInput" spellcheck="false" autocomplete="off" placeholder="">
-      <label for="sqlInput">The SQL you used (optional, but appreciated)</label>
+      <label for="sqlInput">Your SQL query</label>
       <textarea id="sqlInput" spellcheck="false" placeholder="SELECT ... FROM ..."></textarea>
       <div class="row" style="margin-top:12px;">
-        <button id="btnPrev" class="ghost">← Question 1</button>
+        <button id="btnCheck">Run &amp; check</button>
+        <span class="pill" id="attemptPill"></span>
         <span style="flex:1"></span>
+        <button id="btnPrev" class="ghost">← Question 1</button>
         <button id="btnNext" class="ghost">Question 2 →</button>
       </div>
+      <div id="feedback" class="feedback hidden"></div>
+      <div class="resultwrap" id="yourResult"></div>
       <div id="submitWrap" class="hidden">
         <div class="row" style="margin-top:14px;">
           <button id="btnSubmit" style="flex:1;">Submit my answers</button>
@@ -172,25 +165,25 @@
       <details>
         <summary>Get the data file (proprint.sql)</summary>
         <p class="hint">Load <a href="proprint.sql" target="_blank">proprint.sql</a> into your SQL
-          client (e.g., DB Browser for SQLite) to write your queries — it's the whole Proprint
-          database, exactly as shown above.</p>
+          client (e.g., DB Browser for SQLite) to try your queries there too — the checker runs
+          them here, but practice anywhere you like.</p>
       </details>
     </div>
 
     <p class="foot" style="color:var(--muted); font-size:.75rem; text-align:center; margin-top:26px;">
       Proprint Order System · quiz generated for <span id="footName"></span> ·
-      answers are sent to your instructor when you press Submit.</p>
+      your queries are sent to your instructor when you press Submit.</p>
   </div>
 
   <!-- ============ DONE SCREEN ============ -->
   <div id="screen-final" class="hidden">
-    <h1>Answers <span class="accent">Submitted</span></h1>
+    <h1>Quiz <span class="accent">Submitted</span></h1>
     <div class="card">
       <div class="finalscore" id="finalScore">—</div>
       <p class="subtitle" style="text-align:center;">
-        Thanks, <b id="finalName"></b> — your <b><span id="finalAnswered">0</span> of 10</b> answers were sent to your instructor.</p>
+        Thanks, <b id="finalName"></b> — your <b><span id="finalAnswered">0</span> of 10</b> solved questions were sent to your instructor.</p>
       <p class="hint" style="text-align:center;">
-        Completion receipt: <b style="color:var(--accent2);" id="receiptCode"></b><br>
+      Completion receipt: <b style="color:var(--accent2);" id="receiptCode"></b><br>
         Screenshot this page or save the receipt — it proves your submission.</p>
       <div class="row" style="margin-top:18px; justify-content:center;">
         <button id="btnBack" class="ghost">Back to my quiz</button>
@@ -200,6 +193,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-wasm.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="quiz-engine.js"></script>
 <script>
@@ -213,10 +207,55 @@ const SUPABASE_ANON_KEY = "sb_publishable_SUHTWIazvjUh7LBOWyCEWA_bNGyhsH7";
 const SUBMISSIONS_TABLE = "sql_quiz_submissions";
 
 /* ============================================================
- * 4. App state, persistence, submission
+ * Database engine (SQLite via WebAssembly) — runs the student's
+ * query in the browser and compares it to the expected result,
+ * which is shown with the question. Nothing executes server-side.
  * ============================================================ */
-const LS_KEY = 'sql-practice-quiz-v3';
-let state = null; // { name, answers: [string x10], sqls: [string x10], submitted, receipt }
+let SQL_LIB = null;        // sql.js module
+let MASTER_BYTES = null;   // pristine copy of the Proprint database
+
+async function initEngine() {
+  if (SQL_LIB && MASTER_BYTES) return;
+  let sqlText;
+  try {
+    const r = await fetch('proprint.sql');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    sqlText = await r.text();
+  } catch (e) {
+    throw new Error('Could not load the database file (proprint.sql). If you downloaded this page, open it from the class website instead.');
+  }
+  try {
+    SQL_LIB = await initSqlJs({ locateFile: (f) => 'https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/' + f });
+  } catch (e) {
+    throw new Error('Could not load the SQLite engine (it comes from a CDN — check your internet connection and reload).');
+  }
+  const db = new SQL_LIB.Database();
+  db.run(sqlText);
+  MASTER_BYTES = db.export();
+  db.close();
+}
+
+function freshDb() {
+  return new SQL_LIB.Database(new Uint8Array(MASTER_BYTES));
+}
+
+// runs ONE SELECT (or WITH ... SELECT) — throws readable errors
+function runQuery(db, sql) {
+  const bare = sql.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
+  if (!bare) throw new Error('The query is empty. Write a SELECT statement first.');
+  if (!/^(select|with)\b/i.test(bare)) throw new Error('Only SELECT (or WITH … SELECT) queries can be checked.');
+  const body = bare.replace(/;\s*$/, '');
+  if (body.includes(';')) throw new Error('Submit exactly ONE statement (remove the extra semicolons).');
+  const res = db.exec(body);
+  if (!res.length) return { columns: [], values: [] };
+  return { columns: res[0].columns, values: res[0].values };
+}
+
+/* ============================================================
+ * App state, persistence, submission
+ * ============================================================ */
+const LS_KEY = 'sql-practice-quiz-v4';
+let state = null; // { name, sqls:[10], attempts:[10], solved:[10], submitted, receipt }
 let QUESTIONS = [];
 
 function loadState() {
@@ -224,8 +263,8 @@ function loadState() {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && typeof s.name === 'string' && Array.isArray(s.answers) && s.answers.length === 10
-          && Array.isArray(s.sqls) && s.sqls.length === 10) return s;
+      if (s && typeof s.name === 'string' && Array.isArray(s.sqls) && s.sqls.length === 10
+          && Array.isArray(s.attempts) && Array.isArray(s.solved)) return s;
     }
   } catch (e) { /* ignore */ }
   return null;
@@ -247,8 +286,8 @@ function stripHtml(html) {
 }
 
 function receiptFor() {
-  const correctness = state.answers.map((a, i) => (a.trim() ? (checkAnswer(a, QUESTIONS[i].expected) ? 2 : 1) : 0));
-  const data = [xmur3(state.name)(), ...correctness].join('|');
+  const marks = state.solved.map((ok, i) => ok ? ('s' + Math.min(state.attempts[i], 9)) : Math.min(state.attempts[i], 9));
+  const data = [xmur3(state.name)(), ...marks].join('|');
   return xmur3(data)().toString(36);
 }
 
@@ -259,10 +298,30 @@ function supa() {
 }
 
 /* ============================================================
- * 5. UI
+ * UI
  * ============================================================ */
 const $ = (id) => document.getElementById(id);
 let curQ = 0;
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderResultTable(res, maxRows = 60) {
+  if (!res.values.length) return '<span class="hint">(0 rows)</span>';
+  const shown = res.values.length > maxRows ? res.values.slice(0, maxRows) : res.values;
+  let html = '<table class="result"><thead><tr>';
+  for (const c of res.columns) html += `<th>${escapeHtml(c === null || c === undefined ? 'column' : c)}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const row of shown) {
+    html += '<tr>';
+    for (const cell of row) html += `<td>${escapeHtml(cell === null || cell === undefined ? '' : String(cell))}</td>`;
+    html += '</tr>';
+  }
+  if (shown.length < res.values.length) html += `<tr><td colspan="${res.columns.length}">… ${res.values.length} rows total …</td></tr>`;
+  html += '</tbody></table>';
+  return html;
+}
 
 async function loadSchemaPanel() {
   try {
@@ -282,23 +341,23 @@ async function loadSchemaPanel() {
 
 function startQuiz(name) {
   QUESTIONS = buildQuestions(name);
-  state = { name, answers: Array(10).fill(''), sqls: Array(10).fill(''), submitted: false, receipt: '' };
+  state = { name, sqls: Array(10).fill(''), attempts: Array(10).fill(0), solved: Array(10).fill(false), submitted: false, receipt: '' };
   saveState();
-  showQuiz(name);
+  resumeQuiz();
 }
 
 function resumeQuiz() {
   QUESTIONS = buildQuestions(state.name);
-  showQuiz(state.name);
+  showQuiz();
 }
 
-function showQuiz(name) {
+function showQuiz() {
   $('screen-start').classList.add('hidden');
   $('screen-final').classList.add('hidden');
   $('screen-quiz').classList.remove('hidden');
-  $('who').textContent = 'Quiz generated for ' + name;
-  $('footName').textContent = name;
-  curQ = state.answers.findIndex(a => !a.trim());
+  $('who').textContent = 'Quiz generated for ' + state.name;
+  $('footName').textContent = state.name;
+  curQ = state.solved.findIndex(s => !s);
   if (curQ === -1) curQ = 9;
   renderNav();
   renderQuestion();
@@ -311,19 +370,17 @@ function renderNav() {
   for (let i = 0; i < 10; i++) {
     const b = document.createElement('button');
     b.textContent = i + 1;
-    b.title = state.answers[i].trim() ? 'answered' : 'not answered yet';
-    if (state.answers[i].trim()) b.classList.add('done');
+    b.title = state.solved[i] ? 'solved' : (state.attempts[i] ? 'attempted' : 'not attempted yet');
+    if (state.solved[i]) b.classList.add('done');
     if (i === curQ) b.classList.add('cur');
     b.addEventListener('click', () => { stash(); curQ = i; renderQuestion(); });
     nav.appendChild(b);
   }
-  const answered = state.answers.filter(a => a.trim()).length;
-  $('answeredPill').textContent = answered + ' of 10 answered';
+  $('answeredPill').textContent = state.solved.filter(Boolean).length + ' of 10 solved';
 }
 
 function stash() {
   if (state) {
-    state.answers[curQ] = $('answerInput').value;
     state.sqls[curQ] = $('sqlInput').value;
     saveState();
   }
@@ -331,32 +388,105 @@ function stash() {
 
 function renderQuestion() {
   const q = QUESTIONS[curQ];
+  const solved = state.solved[curQ];
   $('qNum').textContent = curQ + 1;
   $('qSkill').textContent = 'Question ' + (curQ + 1) + ' of 10 · ' + q.skill;
-  $('qPrompt').innerHTML = '<b>' + q.skill + '.</b> ' + q.prompt;
-  $('answerInput').value = state.answers[curQ] || '';
+  $('qPrompt').innerHTML = '<b>Write a query that answers this:</b> ' + q.prompt;
+  $('qNote').innerHTML = q.note ? `<b>Notes:</b> ${q.note}` : '';
   $('sqlInput').value = state.sqls[curQ] || '';
+  $('sqlInput').disabled = solved;
+  $('btnCheck').disabled = solved;
+  $('attemptPill').textContent = state.attempts[curQ]
+    ? (solved ? 'solved' + (state.attempts[curQ] === 1 ? ' — first try!' : ' — in ' + state.attempts[curQ] + ' tries')
+              : state.attempts[curQ] + ' attempt' + (state.attempts[curQ] === 1 ? '' : 's'))
+    : '';
   $('btnPrev').textContent = '← Question ' + curQ;
   $('btnPrev').disabled = curQ === 0;
   $('btnNext').textContent = 'Question ' + (curQ + 2) + ' →';
   $('btnNext').disabled = curQ === 9;
-  // Submit appears only on the last question
+  $('feedback').className = 'feedback hidden';
+  $('feedback').replaceChildren();
+  $('yourResult').innerHTML = '';
   $('submitWrap').classList.toggle('hidden', curQ !== 9);
   $('submitFeedback').className = 'feedback hidden';
   $('submitFeedback').replaceChildren();
+
+  // expected result for this question (from the reference query — pre-cached)
+  const expected = q.cache || (q.cache = (() => {
+    const db = freshDb();
+    try { return runQuery(db, q.ref); }
+    catch (e) { console.error('reference query failed', e); return { columns: [], values: [] }; }
+    finally { db.close(); }
+  })());
+  $('qExpected').innerHTML = renderResultTable(expected);
+
   renderNav();
   window.scrollTo({ top: 0 });
+}
+
+async function checkQuery() {
+  const q = QUESTIONS[curQ];
+  const solved = state.solved[curQ];
+  if (solved) return;
+  const sql = $('sqlInput').value;
+  const fb = $('feedback');
+  const yours = $('yourResult');
+  fb.className = 'feedback hidden';
+  yours.innerHTML = '';
+
+  const btn = $('btnCheck');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  await new Promise((r) => setTimeout(r, 10)); // let the button repaint before the query blocks
+
+  let res;
+  try {
+    if (!queryMentionsTable(sql)) throw new Error('Your query must read from one of the database tables — typing the shown result with UNIONs or literals does not count.');
+    const db = freshDb();
+    try { res = runQuery(db, sql); }
+    finally { db.close(); }
+  } catch (e) {
+    state.sqls[curQ] = sql;
+    state.attempts[curQ] += 1;
+    saveState();
+    fb.className = 'feedback bad';
+    fb.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Run & check';
+    renderNav();
+    return;
+  }
+
+  state.sqls[curQ] = sql;
+  state.attempts[curQ] += 1;
+  const verdict = gradeResult(res, q.cache);
+  if (verdict === true) {
+    state.solved[curQ] = true;
+    saveState();
+    fb.className = 'feedback good';
+    fb.textContent = '✓ Correct — your query returns exactly the expected result' +
+      (state.attempts[curQ] === 1 ? ' on the first try. Nice.' : (' in ' + state.attempts[curQ] + ' tries.'));
+    yours.innerHTML = '';
+    $('sqlInput').disabled = true;
+    btn.disabled = true;
+  } else {
+    saveState();
+    fb.className = 'feedback bad';
+    fb.textContent = '✗ Not quite — ' + verdict + '.';
+    yours.innerHTML = '<div class="resulthead">Your query returned:</div>' + renderResultTable(res);
+    btn.disabled = false;
+  }
+  btn.textContent = 'Run & check';
+  renderNav();
 }
 
 async function submitAnswers() {
   stash();
   const fb = $('submitFeedback');
-  const answered = state.answers.filter(a => a.trim()).length;
-  if (answered < 10 && !confirm(`You've answered ${answered} of 10. Submit anyway? You can't edit after submitting.`)) return;
+  const solved = state.solved.filter(Boolean).length;
+  if (solved < 10 && !confirm(`You've solved ${solved} of 10. Submit anyway? You can't edit after submitting.`)) return;
   $('btnSubmit').disabled = true;
   $('btnSubmit').textContent = 'Submitting…';
-  fb.className = 'feedback info';
-  fb.textContent = 'Sending your answers to your instructor…';
 
   const receipt = receiptFor();
   const payload = {
@@ -366,12 +496,12 @@ async function submitAnswers() {
       skill: q.skill,
       prompt: stripHtml(q.prompt),
     })),
-    answers: state.answers.map((a, i) => ({
+    answers: state.sqls.map((sql, i) => ({
       num: i + 1,
-      answer: a.trim(),
-      sql: (state.sqls[i] || '').trim(),
-      expected: QUESTIONS[i].expected.map(String).join(', '),
-      correct: a.trim() ? checkAnswer(a, QUESTIONS[i].expected) : false,
+      sql: (sql || '').trim(),
+      attempts: state.attempts[i],
+      solved: state.solved[i],
+      expected_result: QUESTIONS[i].cache || null,
     })),
     receipt,
   };
@@ -382,16 +512,15 @@ async function submitAnswers() {
     $('btnSubmit').disabled = false;
     $('btnSubmit').textContent = 'Submit my answers';
     fb.className = 'feedback bad';
-    fb.textContent = 'Could not submit (' + e.message + '). Check your internet connection and try again — your answers are still saved in this browser.';
+    fb.textContent = 'Could not submit (' + e.message + '). Check your internet connection and try again — your work is still saved in this browser.';
     return;
   }
   state.submitted = true;
   state.receipt = receipt;
   saveState();
-  const score = payload.answers.filter(a => a.correct).length;
-  $('finalScore').textContent = score + ' / 10 correct';
+  $('finalScore').textContent = solved + ' / 10 correct';
   $('finalName').textContent = state.name;
-  $('finalAnswered').textContent = answered;
+  $('finalAnswered').textContent = solved;
   $('receiptCode').textContent = receipt;
   $('screen-quiz').classList.add('hidden');
   $('screen-final').classList.remove('hidden');
@@ -399,26 +528,33 @@ async function submitAnswers() {
 }
 
 /* ---------- event wiring ---------- */
-$('btnStart').addEventListener('click', () => {
+$('btnStart').addEventListener('click', async () => {
   const n1 = $('nameInput').value.trim().replace(/\s+/g, ' ');
   const err = $('nameError');
   if (n1.length < 2) { err.textContent = 'Please type your name (at least 2 characters).'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
 
   const saved = loadState();
-  if (saved && saved.name.toLowerCase() === n1.toLowerCase() && saved.submitted) {
+  const resuming = saved && saved.name.toLowerCase() === n1.toLowerCase();
+  try {
+    await initEngine();
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+    return;
+  }
+  if (resuming && saved.submitted) {
     state = saved;
     QUESTIONS = buildQuestions(state.name);
-    const score = state.answers.filter((a, i) => a.trim() && checkAnswer(a, QUESTIONS[i].expected)).length;
-    $('finalScore').textContent = score + ' / 10 correct';
+    $('finalScore').textContent = state.solved.filter(Boolean).length + ' / 10 correct';
     $('finalName').textContent = state.name;
-    $('finalAnswered').textContent = state.answers.filter(a => a.trim()).length;
+    $('finalAnswered').textContent = state.solved.filter(Boolean).length;
     $('receiptCode').textContent = state.receipt;
     $('screen-start').classList.add('hidden');
     $('screen-final').classList.remove('hidden');
     return;
   }
-  if (saved && saved.name.toLowerCase() === n1.toLowerCase()) {
+  if (resuming) {
     state = saved;
     resumeQuiz();
   } else {
@@ -426,8 +562,8 @@ $('btnStart').addEventListener('click', () => {
   }
 });
 
-$('answerInput').addEventListener('input', stash);
 $('sqlInput').addEventListener('input', stash);
+$('btnCheck').addEventListener('click', checkQuery);
 $('btnPrev').addEventListener('click', () => { stash(); if (curQ > 0) { curQ--; renderQuestion(); } });
 $('btnNext').addEventListener('click', () => { stash(); if (curQ < 9) { curQ++; renderQuestion(); } });
 $('btnSubmit').addEventListener('click', submitAnswers);
@@ -438,7 +574,7 @@ $('btnBack').addEventListener('click', () => {
   renderNav(); renderQuestion();
 });
 $('btnRestart').addEventListener('click', () => {
-  if (!confirm('Reset all progress? Your draft answers will be deleted from this browser (already-submitted quizzes stay with your instructor).')) return;
+  if (!confirm('Reset all progress? Your queries will be deleted from this browser (already-submitted quizzes stay with your instructor).')) return;
   try { localStorage.removeItem(LS_KEY); } catch (e) { }
   state = null;
   $('screen-final').classList.add('hidden');
@@ -447,11 +583,19 @@ $('btnRestart').addEventListener('click', () => {
 });
 $('nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnStart').click(); });
 
-/* warn about unsent draft when leaving mid-quiz */
-window.addEventListener('beforeunload', (e) => {
-  if (state && !state.submitted && (state.answers.some(a => a.trim()) || state.sqls.some(s => s.trim()))) {
+/* Cmd/Ctrl+Enter checks the current query */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !$('screen-quiz').classList.contains('hidden')) {
     e.preventDefault();
-    e.returnValue = 'You have unsent quiz answers — they are saved in this browser, but not submitted yet.';
+    checkQuery();
+  }
+});
+
+/* warn about unsent work when leaving mid-quiz */
+window.addEventListener('beforeunload', (e) => {
+  if (state && !state.submitted && state.sqls.some(s => s.trim())) {
+    e.preventDefault();
+    e.returnValue = 'You have unsent quiz queries — they are saved in this browser, but not submitted yet.';
   }
 });
 </script>

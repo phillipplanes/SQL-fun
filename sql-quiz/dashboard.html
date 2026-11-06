@@ -63,6 +63,10 @@
   table.summary th { text-align: left; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
   table.summary td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
   table.summary tr:hover td { background: rgba(138, 92, 214, .06); }
+  table.result { border-collapse: collapse; margin-top: 8px; font-size: .8rem; }
+  table.result th, table.result td { padding: 4px 8px; border: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  table.result th { background: #180830; color: var(--hpu-glow); font-weight: 400; font-family: 'Cascadia Code', Consolas, monospace; }
+  table.result td { background: #180830; }
   .score { font-weight: 900; }
   .score.good { color: var(--accent2); }
   .score.mid  { color: var(--warn); }
@@ -264,9 +268,11 @@ function renderSummary() {
 function scoreOf(/** newest-first */ rows) {
   const latest = rows[0];
   const answers = latest.answers || [];
+  const isRight = (a) => a.solved === true || a.correct === true;
+  const hasWork = (a) => String(a.sql || a.answer || '').trim().length > 0;
   return {
-    score: answers.filter(a => a.correct === true).length,
-    answered: answers.filter(a => String(a.answer || '').trim().length > 0).length,
+    score: answers.filter(isRight).length,
+    answered: answers.filter(hasWork).length,
   };
 }
 
@@ -283,21 +289,39 @@ function showDetail(name) {
   (latest.questions || []).forEach(q => { qByNum[q.num] = q; });
   const answers = latest.answers || [];
   for (let i = 1; i <= 10; i++) {
-    const a = answers.find(x => x.num === i) || { num: i, answer: '', sql: '', expected: '', correct: false };
+    const a = answers.find(x => x.num === i) || { num: i, sql: '', attempts: 0, solved: false };
     const q = qByNum[i] || { num: i, skill: '', prompt: '(question text not stored in this row)' };
+    const right = a.solved === true || a.correct === true;
+    const attempted = a.attempts || 0;
     const card = document.createElement('div');
     card.className = 'qcard';
     card.innerHTML =
       `<div class="qhead">
          <span class="qnum">Q${i}</span>
          <span class="muted" style="font-size:.78rem; text-transform:uppercase; letter-spacing:1px;">${escapeHtml(q.skill || '')}</span>
-         <span class="${a.correct ? 'ok' : 'no'}">${a.correct ? '✓ correct' : (String(a.answer || '').trim() ? '✗ incorrect' : '— not answered')}</span>
+         <span class="${right ? 'ok' : 'no'}">${right ? '✓ solved' : (attempted ? '✗ not solved' : '— untouched')}</span>
+         ${attempted ? `<span class="muted">${attempted} attempt${attempted === 1 ? '' : 's'}</span>` : ''}
        </div>` +
       (q.prompt ? `<div style="margin-top:8px; font-size:.88rem; line-height:1.5;">${escapeHtml(q.prompt)}</div>` : '') +
-      `<div style="margin-top:8px; font-size:.88rem;">Answer given: <b>${escapeHtml(a.answer || '—')}</b></div>` +
-      `<div style="margin-top:4px; font-size:.88rem;">Expected: <span class="expected">${escapeHtml(a.expected || '')}</span></div>` +
-      (a.sql ? `<div class="pre">${escapeHtml(a.sql)}</div>`
-             : `<div class="muted" style="margin-top:6px; font-size:.8rem;">(no SQL submitted)</div>`);
+      (a.sql ? `<div class="pre">${escapeHtml(a.sql)}</div>` : `<div class="muted" style="margin-top:6px; font-size:.8rem;">(no query submitted)</div>`);
+    // expected result table (new rows carry it; legacy rows may show a typed expected/answer pair)
+    if (a.expected_result && a.expected_result.values) {
+      const t = a.expected_result;
+      let table = '<table class="result"><thead><tr>';
+      for (const c of t.columns) table += `<th>${escapeHtml(c)}</th>`;
+      table += '</tr></thead><tbody>';
+      for (const row of t.values.slice(0, 60)) {
+        table += '<tr>';
+        for (const cell of row) table += `<td>${escapeHtml(cell === null || cell === undefined ? '' : String(cell))}</td>`;
+        table += '</tr>';
+      }
+      table += '</tbody></table>';
+      card.insertAdjacentHTML('beforeend',
+        '<div class="muted" style="margin-top:8px; font-size:.78rem; text-transform:uppercase; letter-spacing:1px;">Expected result</div>' + table);
+    } else if (a.expected || a.answer) {
+      card.insertAdjacentHTML('beforeend',
+        `<div style="margin-top:8px; font-size:.85rem;">Answer given: <b>${escapeHtml(a.answer || '—')}</b> · expected: <span class="expected">${escapeHtml(a.expected || '')}</span></div>`);
+    }
     body.appendChild(card);
   }
 
@@ -311,7 +335,7 @@ function showDetail(name) {
     body.appendChild(head);
     earlier.forEach((r, idx) => {
       const a = r.answers || [];
-      const sc = a.filter(x => x.correct === true).length;
+      const sc = a.filter(x => x.solved === true || x.correct === true).length;
       const el = document.createElement('div');
       el.className = 'qcard';
       el.innerHTML =
@@ -400,7 +424,7 @@ function exportCsv() {
     const answers = latest.answers || [];
     const flags = Array.from({ length: 10 }, (_, i) => {
       const a = answers.find(x => x.num === i + 1);
-      return a && a.correct === true ? '1' : '0';
+      return a && (a.solved === true || a.correct === true) ? '1' : '0';
     });
     const cells = [n, s.score, s.answered, rs.length, new Date(latest.created_at).toISOString(), latest.receipt || '', ...flags];
     lines.push(cells.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(','));

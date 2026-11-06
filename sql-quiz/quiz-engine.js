@@ -6,7 +6,7 @@
  *  - Seeded RNG: a student's name deterministically generates their quiz
  *  - Question templates: same 10 skills for everyone, details seeded per name
  *  - DATA: expected answers, verified against proprint.sql
- *  - checkAnswer: tolerant answer comparison used at submit time
+ *  - gradeResult: value-tolerant comparison of a query result against the expected result
  * ============================================================ */
 
 function xmur3(str) {
@@ -551,30 +551,56 @@ function buildQuestions(name) {
 }
 
 /* ============================================================
- * 3. Answer checking
- *    - split on commas / semicolons / colons / newlines
- *    - numbers: strip $ and commas, compare rounded to cents
- *    - text: case-insensitive exact match
- *    - order of multiple values doesn't matter
+ * 3. Result comparison + query sanity checks
+ *    The expected result is shown with the question; the student's query
+ *    must return it. Comparison is on values only:
+ *    - row order doesn't matter; column order doesn't matter
+ *    - numbers compared rounded to cents (so SUM float noise is fine)
+ *    - a query must actually read from a table (no literal-only tricks)
  * ============================================================ */
-function splitAnswer(s) {
-  // collapse thousands separators in numbers like "15,558.72" or "$1,234" so the
-  // comma isn't treated as a value separator (a comma followed by a space still splits)
-  const protected_ = String(s || '').replace(/(\d),(?=\d{3}(\.\d+)?(\D|$))/g, '$1');
-  return protected_
-    .split(/[,;:\n]+/)
-    .map((p) => p.trim().replace(/^["']|["']$/g, '').trim())
-    .filter((p) => p.length > 0);
-}
-function normPart(p) {
-  const t = String(p).replace(/\$/g, '').replace(/,/g, '').trim();
-  if (/^-?\d+(\.\d+)?$/.test(t)) return 'n:' + (Math.round(parseFloat(t) * 100) / 100);
-  return 's:' + t.toLowerCase();
-}
-function checkAnswer(input, expected) {
-  const got = splitAnswer(input).map(normPart).sort();
-  if (!got.length) return false;
-  const want = expected.map(String).map(normPart).sort();
-  return got.length === want.length && got.every((v, i) => v === want[i]);
+const TABLES = ['customers', 'employees', 'orders', 'order_products', 'shipments', 'products', 'product_categories', 'suppliers'];
+
+function normVal(v) {
+  if (v === null || v === undefined) return '#';
+  if (typeof v === 'number') return Number.isFinite(v) ? 'n:' + (Math.round(v * 100) / 100) : 'v:' + v;
+  const s = String(v).trim();
+  if (/^-?\d+(\.\d+)?$/.test(s)) return 'n:' + (Math.round(parseFloat(s) * 100) / 100);
+  return 's:' + s;
 }
 
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+// got / expected: { columns: [...], values: [[...]...] }
+// returns true, or a human-readable reason string
+function gradeResult(got, expected) {
+  const gCols = got.columns.length || (got.values[0] || []).length;
+  const eCols = expected.columns.length || (expected.values[0] || []).length;
+  const gRows = got.values.length;
+  const eRows = expected.values.length;
+  if (gCols !== eCols) {
+    return gRows === 0
+      ? 'your query returned no rows — the expected result has ' + eRows + ' row' + (eRows === 1 ? '' : 's') + ' and ' + eCols + ' column' + (eCols === 1 ? '' : 's') + ' (check your tables and columns)'
+      : 'your query returns ' + gCols + ' column' + (gCols === 1 ? '' : 's') + ', but the expected result has ' + eCols + ' — check which columns you SELECT';
+  }
+  const exact = got.values.map(r => r.map(normVal).join('\u0001')).sort();
+  const expExact = expected.values.map(r => r.map(normVal).join('\u0001')).sort();
+  const perm = got.values.map(r => r.map(normVal).sort().join('\u0001')).sort();
+  const expPerm = expected.values.map(r => r.map(normVal).sort().join('\u0001')).sort();
+  if (arraysEqual(exact, expExact) || arraysEqual(perm, expPerm)) return true;
+  if (gRows === 0) return 'your query returned 0 rows — check your WHERE conditions (the expected result has ' + eRows + ' row' + (eRows === 1 ? '' : 's') + ')';
+  if (gRows === eRows) return 'you return the right number of rows (' + eRows + '), but the values do not match';
+  return gRows < eRows
+    ? 'you return ' + gRows + ' row' + (gRows === 1 ? '' : 's') + ' but ' + eRows + ' are expected — your WHERE is probably too strict'
+    : 'you return ' + gRows + ' row' + (gRows === 1 ? '' : 's') + ' but only ' + eRows + ' are expected — your WHERE is probably too loose';
+}
+
+// A quiz query should read from at least one real table — blocks trivial
+// "SELECT 'x' UNION 'y'" style shortcuts that just retype the shown answer.
+function queryMentionsTable(sql) {
+  const bare = String(sql).replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  return TABLES.some((t) => new RegExp('\\b' + t + '\\b', 'i').test(bare));
+}

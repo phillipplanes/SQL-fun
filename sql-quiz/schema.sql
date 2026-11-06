@@ -11,7 +11,7 @@ create table if not exists public.sql_quiz_submissions (
   id           bigint generated always as identity primary key,
   student_name text not null,
   questions    jsonb not null default '[]'::jsonb,  -- [{num, skill, prompt}] as seen by the student
-  answers      jsonb not null default '[]'::jsonb,  -- [{num, answer, sql, expected, correct}]
+  answers      jsonb not null default '[]'::jsonb,  -- [{num, sql, attempts, solved, expected_result}]
   receipt      text,                                -- shown to the student on submission
   created_at   timestamptz not null default now()
 );
